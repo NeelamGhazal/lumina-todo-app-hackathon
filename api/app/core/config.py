@@ -22,8 +22,13 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 1440  # 24 hours
 
-    # CORS
-    frontend_url: str = "http://localhost:3000"
+    # CORS - comma-separated list of allowed origins
+    frontend_url: str = "http://localhost:3000,https://frontend-chi-two-92.vercel.app"
+
+    @property
+    def cors_origins(self) -> list[str]:
+        """Get list of CORS origins."""
+        return [origin.strip() for origin in self.frontend_url.split(",")]
 
     # Environment
     environment: str = "development"
