@@ -208,3 +208,13 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+
+## Active Technologies
+- TypeScript 5.x (strict mode, no `any` types) (002-phase2-todo-frontend)
+- Python 3.11+ with FastAPI, SQLModel, JWT (api/)
+- Next.js 16 with App Router, Tailwind CSS (frontend/)
+
+## Recent Changes
+- 002-phase2-todo-frontend: Added TypeScript 5.x (strict mode, no `any` types)
+- 002-phase2-todo-frontend: Implemented FastAPI backend with SQLModel and JWT auth in api/
+- 002-phase2-todo-frontend: Full CRUD operations verified for tasks API

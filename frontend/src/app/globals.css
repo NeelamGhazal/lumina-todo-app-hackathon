@@ -1,0 +1,1011 @@
+@import "tailwindcss";
+
+/**
+ * Deep Purple Royal Design System
+ * Modern glassmorphism with purple accent palette
+ * Light: #ede7f6 bg, #4a148c text, #7e57c2 accent
+ * Dark: #1a0033 bg, #ede7f6 text, #b39ddb accent (DEFAULT)
+ */
+
+@layer base {
+  :root {
+    /* ==========================================
+       Deep Purple Royal - Light Theme
+       Background: #ede7f6 | Border: #d1c4e9
+       Text: #1a0033 (very dark) | Accent: #311b92
+       ========================================== */
+    --background: 261 46% 94%;
+    --foreground: 270 100% 10%;
+
+    /* Surface colors */
+    --bg-base: 261 46% 94%;
+    --bg-surface: 0 0% 100%;
+    --bg-elevated: 261 46% 84%;
+
+    /* Cards - white with purple border */
+    --card: 0 0% 100%;
+    --card-foreground: 270 100% 10%;
+
+    /* Popovers match cards */
+    --popover: 0 0% 100%;
+    --popover-foreground: 270 100% 10%;
+
+    /* Primary - VERY DARK purple for visibility #311b92 */
+    --primary: 262 78% 34%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Light purple for secondary actions */
+    --secondary: 261 46% 88%;
+    --secondary-foreground: 270 100% 10%;
+
+    /* Muted - subtle backgrounds */
+    --muted: 261 46% 84%;
+    --muted-foreground: 270 100% 20%;
+
+    /* Accent - Purple #7e57c2 */
+    --accent: 262 47% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders - #d1c4e9 */
+    --border: 261 46% 84%;
+    --input: 262 47% 74%;
+
+    /* Focus ring - Purple accent #7e57c2 */
+    --ring: 262 47% 55%;
+
+    /* Radius */
+    --radius: 0.5rem;
+
+    /* Chart colors - Purple palette */
+    --chart-1: 262 47% 55%;
+    --chart-2: 262 47% 74%;
+    --chart-3: 276 78% 31%;
+    --chart-4: 262 55% 45%;
+    --chart-5: 261 46% 84%;
+
+    /* Priority colors */
+    --priority-high: 0 72% 51%;
+    --priority-high-foreground: 0 0% 100%;
+    --priority-medium: 38 92% 50%;
+    --priority-medium-foreground: 0 0% 0%;
+    --priority-low: 142 71% 45%;
+    --priority-low-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    /* ==========================================
+       Deep Purple Royal - Dark Theme (DEFAULT)
+       Background: #1a0033 | Border: rgba(126,87,194,0.2)
+       Text: #f3e5f5 (bright lavender) | Accent: #ce93d8
+       Card: rgba(255,255,255,0.05)
+       ========================================== */
+    --background: 270 100% 10%;
+    --foreground: 291 47% 95%;
+
+    /* Dark surface colors */
+    --bg-base: 270 100% 10%;
+    --bg-surface: 283 100% 12%;
+    --bg-elevated: 270 100% 15%;
+
+    /* Cards - glassmorphism */
+    --card: 270 100% 12%;
+    --card-foreground: 291 47% 95%;
+
+    /* Popovers */
+    --popover: 270 100% 12%;
+    --popover-foreground: 291 47% 95%;
+
+    /* Primary - Brighter purple accent #ce93d8 for visibility */
+    --primary: 291 47% 72%;
+    --primary-foreground: 270 100% 10%;
+
+    /* Secondary - Darker surface */
+    --secondary: 270 100% 18%;
+    --secondary-foreground: 291 47% 95%;
+
+    /* Muted */
+    --muted: 270 100% 18%;
+    --muted-foreground: 291 47% 80%;
+
+    /* Accent - Purple #b39ddb */
+    --accent: 262 47% 74%;
+    --accent-foreground: 270 100% 10%;
+
+    /* Destructive */
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders - rgba(126,87,194,0.2) approximated */
+    --border: 262 47% 35%;
+    --input: 262 47% 25%;
+
+    /* Focus ring - Purple #b39ddb */
+    --ring: 262 47% 74%;
+
+    /* Priority colors */
+    --priority-high: 0 72% 55%;
+    --priority-high-foreground: 0 0% 100%;
+    --priority-medium: 38 92% 55%;
+    --priority-medium-foreground: 0 0% 0%;
+    --priority-low: 160 60% 45%;
+    --priority-low-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    /* Light mode gradient background */
+    background: linear-gradient(135deg, #ede7f6 0%, #d1c4e9 100%);
+    background-attachment: fixed;
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+    /* Smooth font rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  .dark body,
+  body.dark,
+  :root.dark body {
+    /* Dark mode gradient background */
+    background: linear-gradient(135deg, #1a0033 0%, #2e003e 50%, #120024 100%);
+    background-attachment: fixed;
+  }
+}
+
+/* Cursor pointer for all clickable elements */
+button,
+[role="button"],
+[type="button"],
+[type="submit"],
+[type="reset"],
+a,
+label[for],
+select,
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"],
+summary,
+[tabindex]:not([tabindex="-1"]),
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Theme transition - smooth and professional */
+html {
+  transition: background-color 0.2s ease-out, color 0.2s ease-out;
+}
+
+/* Skeleton shimmer effect - refined */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted) / 0.6) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Card hover glow effect for dark mode - subtle */
+.dark .card-glow {
+  box-shadow:
+    0 0 0 1px hsl(var(--border)),
+    0 1px 3px 0 rgb(0 0 0 / 0.1);
+}
+
+.dark .card-glow:hover {
+  box-shadow:
+    0 0 0 1px hsl(var(--border)),
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* Skip to main content link */
+.skip-to-main {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 1em;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  opacity: 0;
+}
+
+.skip-to-main:focus {
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0;
+  opacity: 1;
+}
+
+/* Focus visible outline - clear and professional */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Touch target minimum size */
+@media (pointer: coarse) {
+  button,
+  [role="button"],
+  input[type="checkbox"],
+  input[type="radio"],
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Scrollbar styling for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Selection styling */
+::selection {
+  background: hsl(var(--primary) / 0.15);
+  color: hsl(var(--foreground));
+}
+
+.dark ::selection {
+  background: hsl(var(--primary) / 0.3);
+}
+
+/* ==========================================
+   Deep Purple Royal Glass Effects
+   ========================================== */
+
+/* Base glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(209, 196, 233, 0.5);
+}
+
+.dark .glass {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(126, 87, 194, 0.2);
+}
+
+/* Glass card variants */
+.glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(209, 196, 233, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.dark .glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(126, 87, 194, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
+}
+
+/* Glass card with hover glow - Purple accent */
+.glass-card-glow {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.glass-card-glow:hover {
+  box-shadow: 0 0 20px rgba(126, 87, 194, 0.2), 0 8px 32px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.dark .glass-card-glow:hover {
+  box-shadow: 0 0 30px rgba(179, 157, 219, 0.3), 0 8px 32px rgba(0, 0, 0, 0.32);
+}
+
+/* Glass input fields */
+.glass-input {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(179, 157, 219, 0.5);
+}
+
+.dark .glass-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(126, 87, 194, 0.3);
+}
+
+.glass-input:focus {
+  border-color: rgba(126, 87, 194, 0.6);
+  box-shadow: 0 0 0 3px rgba(126, 87, 194, 0.15);
+}
+
+.dark .glass-input:focus {
+  border-color: #b39ddb;
+  box-shadow: 0 0 0 3px rgba(179, 157, 219, 0.15);
+}
+
+/* Glass button - Purple accent */
+.glass-button {
+  background: rgba(126, 87, 194, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(126, 87, 194, 0.3);
+  transition: all 0.2s ease;
+}
+
+.glass-button:hover {
+  background: rgba(126, 87, 194, 0.2);
+  border-color: rgba(126, 87, 194, 0.5);
+  box-shadow: 0 0 20px rgba(126, 87, 194, 0.3);
+}
+
+.dark .glass-button {
+  background: rgba(179, 157, 219, 0.15);
+  border: 1px solid rgba(179, 157, 219, 0.3);
+}
+
+.dark .glass-button:hover {
+  background: #b39ddb;
+  color: #1a0033;
+  border-color: #b39ddb;
+  box-shadow: 0 0 20px rgba(179, 157, 219, 0.4);
+}
+
+/* Glass sidebar */
+.glass-sidebar {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(209, 196, 233, 0.5);
+}
+
+.dark .glass-sidebar {
+  background: rgba(26, 0, 51, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(126, 87, 194, 0.2);
+}
+
+/* Glass modal overlay */
+.glass-overlay {
+  background: rgba(74, 20, 140, 0.3);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.dark .glass-overlay {
+  background: rgba(26, 0, 51, 0.7);
+}
+
+/* Glass modal content */
+.glass-modal {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(209, 196, 233, 0.5);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
+}
+
+.dark .glass-modal {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(126, 87, 194, 0.2);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+}
+
+/* Add Task Modal - LIGHT THEME */
+.modal-content-bg {
+  background-color: #d1c3e9 !important;
+}
+
+.modal-content-bg,
+.modal-content-bg * {
+  color: #1a0033 !important;
+}
+
+.modal-content-bg input,
+.modal-content-bg textarea,
+.modal-content-bg select,
+.modal-content-bg [role="combobox"],
+.modal-content-bg [role="listbox"],
+.modal-content-bg [role="option"] {
+  background-color: #ede7f6 !important;
+  border: 1px solid #4a148c !important;
+  color: #1a0033 !important;
+}
+
+.modal-content-bg input::placeholder,
+.modal-content-bg textarea::placeholder {
+  color: #5e35b1 !important;
+  opacity: 0.8 !important;
+}
+
+/* Add Task Modal - DARK THEME */
+.dark .modal-content-bg {
+  background-color: #4e2f83 !important;
+}
+
+.dark .modal-content-bg,
+.dark .modal-content-bg * {
+  color: #f3e5f5 !important;
+}
+
+.dark .modal-content-bg input,
+.dark .modal-content-bg textarea,
+.dark .modal-content-bg select,
+.dark .modal-content-bg [role="combobox"],
+.dark .modal-content-bg [role="listbox"],
+.dark .modal-content-bg [role="option"] {
+  background-color: #38206a !important;
+  border: 1px solid #ce93d8 !important;
+  color: #f3e5f5 !important;
+}
+
+.dark .modal-content-bg input::placeholder,
+.dark .modal-content-bg textarea::placeholder {
+  color: #ce93d8 !important;
+  opacity: 0.8 !important;
+}
+
+/* Backdrop-filter fallback for unsupported browsers */
+@supports not (backdrop-filter: blur(12px)) {
+  .glass {
+    background: #ede7f6;
+  }
+  .dark .glass {
+    background: #2e003e;
+  }
+  .glass-card {
+    background: #FFFFFF;
+  }
+  .dark .glass-card {
+    background: #2e003e;
+  }
+  .glass-sidebar {
+    background: #FFFFFF;
+  }
+  .dark .glass-sidebar {
+    background: #2e003e;
+  }
+  .glass-modal {
+    background: #FFFFFF;
+  }
+  .dark .glass-modal {
+    background: #2e003e;
+  }
+}
+
+/* ==========================================
+   Deep Purple Royal Gradient Effects
+   ========================================== */
+
+/* GradientText component uses Tailwind classes, not .gradient-text */
+/* These are fallback styles if .gradient-text class is used directly */
+
+/* Gradient border effect - Purple accent */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #7e57c2 0%, #5e35b1 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* Dark theme gradient border */
+.dark .gradient-border::before {
+  background: linear-gradient(135deg, #ce93d8 0%, #b39ddb 100%);
+}
+
+/* Glow effects - Light theme: DARK purple glow */
+.glow-primary {
+  box-shadow: 0 0 20px rgba(49, 27, 146, 0.5);
+}
+
+/* Dark theme glow - BRIGHT (unchanged) */
+.dark .glow-primary {
+  box-shadow: 0 0 20px rgba(225, 190, 231, 0.5);
+}
+
+.glow-accent {
+  box-shadow: 0 0 20px rgba(49, 27, 146, 0.5);
+}
+
+/* Dark theme glow - BRIGHT (unchanged) */
+.dark .glow-accent {
+  box-shadow: 0 0 20px rgba(225, 190, 231, 0.5);
+}
+
+/* ==========================================
+   LIGHT MODE - BUTTON VISIBILITY ONLY
+   ========================================== */
+
+/* Light mode: Target buttons with lumina primary colors */
+button.bg-lumina-primary-500,
+a.bg-lumina-primary-500,
+[role="button"].bg-lumina-primary-500 {
+  background-color: #5e35b1 !important;
+}
+
+/* Light mode: Buttons with gradient classes */
+button.bg-gradient-to-r.from-lumina-primary-500,
+a.bg-gradient-to-r.from-lumina-primary-500,
+[role="button"].bg-gradient-to-r.from-lumina-primary-500 {
+  background: #5e35b1 !important;
+}
+
+/* Light mode button hover */
+button.hover\:bg-lumina-primary-600:hover,
+a.hover\:bg-lumina-primary-600:hover,
+[role="button"].hover\:bg-lumina-primary-600:hover {
+  background-color: #4a148c !important;
+}
+
+/* Light mode: Background with opacity - use darker purple for contrast */
+.bg-lumina-primary-500\/10 {
+  background-color: rgba(94, 53, 177, 0.12) !important;
+}
+
+.bg-lumina-primary-500\/15 {
+  background-color: rgba(94, 53, 177, 0.18) !important;
+}
+
+.bg-lumina-primary-500\/20 {
+  background-color: rgba(94, 53, 177, 0.22) !important;
+}
+
+.bg-lumina-primary-500\/30 {
+  background-color: rgba(94, 53, 177, 0.32) !important;
+}
+
+/* Light mode: Border colors with opacity */
+.border-lumina-primary-500\/20 {
+  border-color: rgba(94, 53, 177, 0.3) !important;
+}
+
+/* ==========================================
+   DARK MODE - BUTTON VISIBILITY ONLY
+   ========================================== */
+
+/* Dark mode: Target buttons with lumina primary colors */
+.dark button.bg-lumina-primary-500,
+.dark a.bg-lumina-primary-500,
+.dark [role="button"].bg-lumina-primary-500 {
+  background-color: #ce93d8 !important;
+  color: #1a0033 !important;
+}
+
+/* Dark mode: Buttons with gradient classes */
+.dark button.bg-gradient-to-r.from-lumina-primary-500,
+.dark a.bg-gradient-to-r.from-lumina-primary-500,
+.dark [role="button"].bg-gradient-to-r.from-lumina-primary-500 {
+  background: #ce93d8 !important;
+  color: #1a0033 !important;
+}
+
+/* Dark mode button hover */
+.dark button.hover\:bg-lumina-primary-600:hover,
+.dark a.hover\:bg-lumina-primary-600:hover,
+.dark [role="button"].hover\:bg-lumina-primary-600:hover {
+  background-color: #ba68c8 !important;
+}
+
+/* Dark mode text colors - keep readable */
+.dark .text-lumina-primary-400 {
+  color: #e1bee7 !important;
+}
+
+/* Dark mode border colors */
+.dark .border-lumina-primary-500 {
+  border-color: #ce93d8 !important;
+}
+
+.dark .border-lumina-primary-500\/20 {
+  border-color: rgba(206, 147, 216, 0.3) !important;
+}
+
+/* Dark mode background with opacity */
+.dark .bg-lumina-primary-500\/10 {
+  background-color: rgba(206, 147, 216, 0.15) !important;
+}
+
+.dark .bg-lumina-primary-500\/15 {
+  background-color: rgba(206, 147, 216, 0.2) !important;
+}
+
+.dark .bg-lumina-primary-500\/20 {
+  background-color: rgba(206, 147, 216, 0.25) !important;
+}
+
+/* Dark mode shadows - BRIGHT glow */
+.dark .shadow-lumina-primary-500\/25 {
+  --tw-shadow-color: rgba(206, 147, 216, 0.4) !important;
+  --tw-shadow: var(--tw-shadow-colored) !important;
+}
+
+.dark .shadow-lumina-primary-500\/30 {
+  --tw-shadow-color: rgba(206, 147, 216, 0.5) !important;
+  --tw-shadow: var(--tw-shadow-colored) !important;
+}
+
+/* ==========================================
+   LIGHT MODE - TEXT VISIBILITY OVERRIDES
+   Use darker purples for better contrast on light backgrounds
+   ========================================== */
+
+/* Light mode: Use deep purple for better visibility on light bg */
+.text-lumina-primary-300 {
+  color: #7e57c2 !important;
+}
+
+.text-lumina-primary-400 {
+  color: #5e35b1 !important;
+}
+
+.text-lumina-primary-500 {
+  color: #512da8 !important;
+}
+
+/* Light mode hover states for links */
+.hover\:text-lumina-primary-300:hover {
+  color: #5e35b1 !important;
+}
+
+/* Light mode muted text - ensure sufficient contrast */
+.text-muted-foreground {
+  color: hsl(270 60% 25%) !important;
+}
+
+/* Dark mode overrides for text (restore bright colors) */
+.dark .text-lumina-primary-300 {
+  color: #e1bee7 !important;
+}
+
+.dark .text-lumina-primary-400 {
+  color: #ce93d8 !important;
+}
+
+.dark .text-lumina-primary-500 {
+  color: #b39ddb !important;
+}
+
+.dark .hover\:text-lumina-primary-300:hover {
+  color: #f3e5f5 !important;
+}
+
+.dark .text-muted-foreground {
+  color: hsl(291 47% 80%) !important;
+}
+
+/* ==========================================
+   GRADIENT TEXT - THEME-AWARE
+   Light: dark purples for visibility on light bg
+   Dark: bright lavenders for visibility on dark bg
+   ========================================== */
+
+/* Primary gradient text - LIGHT MODE: Dark purple gradient */
+.gradient-text-primary {
+  background-image: linear-gradient(to right, #4a148c, #5e35b1, #7e57c2) !important;
+}
+
+/* Primary gradient text - DARK MODE: Bright lavender gradient */
+.dark .gradient-text-primary {
+  background-image: linear-gradient(to right, #e1bee7, #ce93d8, #f3e5f5) !important;
+}
+
+/* Accent gradient text - LIGHT MODE */
+.gradient-text-accent {
+  background-image: linear-gradient(to right, #5e35b1, #4a148c) !important;
+}
+
+/* Accent gradient text - DARK MODE */
+.dark .gradient-text-accent {
+  background-image: linear-gradient(to right, #ce93d8, #e1bee7) !important;
+}
+
+/* ==========================================
+   BUTTON GRADIENTS - THEME-AWARE
+   Light: solid dark purple for visibility
+   Dark: bright purple/lavender for visibility
+   ========================================== */
+
+/* Gradient button - LIGHT MODE: Dark purple solid */
+.btn-gradient {
+  background: linear-gradient(135deg, #5e35b1 0%, #4a148c 100%) !important;
+  box-shadow: 0 4px 14px rgba(94, 53, 177, 0.35);
+}
+
+.btn-gradient:hover {
+  background: linear-gradient(135deg, #4a148c 0%, #311b92 100%) !important;
+  box-shadow: 0 6px 20px rgba(94, 53, 177, 0.45);
+}
+
+/* Gradient button - DARK MODE: Bright lavender */
+.dark .btn-gradient {
+  background: linear-gradient(135deg, #ce93d8 0%, #e1bee7 100%) !important;
+  color: #1a0033 !important;
+  box-shadow: 0 4px 14px rgba(206, 147, 216, 0.4);
+}
+
+.dark .btn-gradient:hover {
+  background: linear-gradient(135deg, #e1bee7 0%, #f3e5f5 100%) !important;
+  color: #1a0033 !important;
+  box-shadow: 0 6px 20px rgba(206, 147, 216, 0.5);
+}
+
+/* Primary button - LIGHT MODE: Dark purple solid */
+.btn-primary {
+  background-color: #5e35b1 !important;
+}
+
+.btn-primary:hover {
+  background-color: #4a148c !important;
+}
+
+/* Primary button - DARK MODE: Bright lavender */
+.dark .btn-primary {
+  background-color: #ce93d8 !important;
+  color: #1a0033 !important;
+}
+
+.dark .btn-primary:hover {
+  background-color: #e1bee7 !important;
+  color: #1a0033 !important;
+}
+
+/* ==========================================
+   LOGO "L" - THEME-AWARE (SCOPED)
+   Light: dark purple box, light text
+   Dark: light lavender box, dark text
+   ========================================== */
+
+/* Logo box - LIGHT MODE */
+.logo-box {
+  background-color: #4a148c;
+}
+
+/* Logo text - LIGHT MODE */
+.logo-text {
+  color: #f3e5f5;
+}
+
+/* Logo box - DARK MODE */
+.dark .logo-box {
+  background-color: #ede7f6;
+}
+
+/* Logo text - DARK MODE */
+.dark .logo-text {
+  color: #4a148c;
+}
+
+/* Username text - LIGHT MODE: Dark for visibility */
+.username-text {
+  color: #1a0033 !important;
+}
+
+/* Username text - DARK MODE: Light for visibility */
+.dark .username-text {
+  color: #f3e5f5 !important;
+}
+
+/* Tags input box - no border, proper padding */
+.tags-input-box {
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.tags-input-box input,
+.tags-input-field {
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 8px 12px !important;
+  min-height: 36px !important;
+}
+
+.tags-input-field:focus,
+.tags-input-field:focus-visible {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  ring: none !important;
+}
+
+/* Avatar circle - LIGHT THEME: dark background, light text */
+.avatar-circle {
+  background: linear-gradient(135deg, #5e35b1 0%, #7e57c2 100%) !important;
+}
+
+.avatar-initials {
+  color: #ffffff !important;
+}
+
+/* Avatar circle - DARK THEME: keep gradient, light text */
+.dark .avatar-circle {
+  background: linear-gradient(135deg, #7e57c2 0%, #ab47bc 100%) !important;
+}
+
+.dark .avatar-initials {
+  color: #ffffff !important;
+}
+
+/* Calendar Popover - LIGHT THEME: light bg, dark text */
+.calendar-popover {
+  background-color: #ffffff !important;
+  color: #1a1a1a !important;
+}
+
+.calendar-popover * {
+  color: #1a1a1a;
+}
+
+.calendar-popover button {
+  color: #1a1a1a !important;
+}
+
+/* Calendar Popover - DARK THEME: dark bg, light text */
+.dark .calendar-popover {
+  background-color: #1e1e2e !important;
+  color: #f3e5f5 !important;
+}
+
+.dark .calendar-popover * {
+  color: #f3e5f5;
+}
+
+.dark .calendar-popover button {
+  color: #f3e5f5 !important;
+}
+
+/* Select Dropdown - LIGHT THEME: light bg, dark text */
+.select-dropdown-content {
+  background-color: #ffffff !important;
+  color: #1a1a1a !important;
+}
+
+.select-dropdown-content * {
+  color: #1a1a1a !important;
+}
+
+/* Select Dropdown - DARK THEME: dark bg, light text */
+.dark .select-dropdown-content {
+  background-color: #1e1e2e !important;
+  color: #f3e5f5 !important;
+}
+
+.dark .select-dropdown-content * {
+  color: #f3e5f5 !important;
+}
+
+/* Priority badges - ensure visibility in light theme */
+.priority-badge-high {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+}
+
+.priority-badge-medium {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+}
+
+.priority-badge-low {
+  background-color: #dcfce7 !important;
+  color: #166534 !important;
+}
+
+/* Priority badges - dark theme (no change, keep as is) */
+.dark .priority-badge-high {
+  background-color: rgba(127, 29, 29, 0.3) !important;
+  color: #f87171 !important;
+}
+
+.dark .priority-badge-medium {
+  background-color: rgba(120, 53, 15, 0.3) !important;
+  color: #fbbf24 !important;
+}
+
+.dark .priority-badge-low {
+  background-color: rgba(20, 83, 45, 0.3) !important;
+  color: #4ade80 !important;
+}
+
+/* Delete Task Confirmation Modal - LIGHT THEME */
+[role="alertdialog"] {
+  background-color: #ffffff !important;
+  color: #1a0033 !important;
+}
+
+[role="alertdialog"] * {
+  color: #1a0033;
+}
+
+[role="alertdialog"] [class*="muted"] {
+  color: #5e35b1 !important;
+}
+
+/* Delete Task Confirmation Modal - DARK THEME */
+.dark [role="alertdialog"] {
+  background-color: #2e1a47 !important;
+  color: #f3e5f5 !important;
+}
+
+.dark [role="alertdialog"] * {
+  color: #f3e5f5;
+}
+
+.dark [role="alertdialog"] [class*="muted"] {
+  color: #ce93d8 !important;
+}
+
+/* Calendar - react-day-picker v9 */
+/* RDP v9 uses flex layout, ensure proper spacing */
+.rdp-root {
+  width: 100%;
+}
+
+.rdp-weekdays {
+  display: flex !important;
+  justify-content: space-between !important;
+}
+
+.rdp-weekday {
+  flex: 1 !important;
+  text-align: center !important;
+}
+
+.rdp-week {
+  display: flex !important;
+  justify-content: space-between !important;
+}
+
+.rdp-day {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
