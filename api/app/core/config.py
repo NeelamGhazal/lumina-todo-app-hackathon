@@ -14,8 +14,8 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
-    # Database
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/evolution_todo"
+    # Database - SQLite for hackathon-safe deployment
+    database_url: str = "sqlite+aiosqlite:///./evolution_todo.db"
 
     # JWT
     jwt_secret_key: str = "dev-secret-key-change-in-production"
