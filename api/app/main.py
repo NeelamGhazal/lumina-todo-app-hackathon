@@ -44,6 +44,12 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(tasks_router, prefix="/api")
 
 
+@app.get("/")
+async def root() -> dict:
+    """Root endpoint for HF Spaces health monitoring."""
+    return {"status": "ok", "service": "Lumina Todo API", "version": "0.1.0"}
+
+
 @app.get("/api/health")
 async def health_check() -> dict:
     """Health check endpoint."""
