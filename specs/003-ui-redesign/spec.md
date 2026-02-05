@@ -93,127 +93,74 @@ Current:
 
 ### 4.1 Color Palette
 
-#### LUMINA OFFICIAL COLOR THEME (SOURCE OF TRUTH)
+> **⚠️ OBSOLETE — ALL COLOR VALUES IN THIS SECTION ARE DEPRECATED**
+>
+> The color palette below (orange `#FF9B51` / slate gray `#25343F`) was **replaced entirely** by the Deep Purple Royal theme in Phase 4.
+>
+> **For all active color values, see: `specs/004-lumina-theme-redesign/spec.md`**
+>
+> The Phase 4 spec is the ONLY canonical source of truth for colors, gradients, buttons, text, and backgrounds.
 
-> ⚠️ **IMPORTANT**: These are the ONLY approved colors. No gradients, no experimental palettes.
+<details>
+<summary>📦 Archived: Original Phase 3 Color Values (DO NOT USE)</summary>
 
-##### Light Theme
+##### Light Theme (OBSOLETE)
 ```css
-/* Main Backgrounds */
---background: #EAEFEF;        /* Page background */
---card: #FFFFFF;              /* Card/surface background */
-
-/* Borders & Secondary */
---border: #BFC9D1;            /* All borders, dividers */
---input: #BFC9D1;             /* Input field borders */
-
-/* Text Colors */
---foreground: #25343F;        /* Primary text (headings, body) */
---muted-foreground: #3D4D5C;  /* Secondary/muted text */
-
-/* Accent / Buttons */
---primary: #FF9B51;           /* Accent color, primary buttons */
---primary-foreground: #FFFFFF;/* Text on accent buttons */
---accent-hover: #E88A42;      /* Darker orange on hover */
-
-/* Focus & Ring */
---ring: #FF9B51;              /* Focus ring color */
+/* ⚠️ OBSOLETE — replaced by Phase 4 Deep Purple Royal theme */
+--background: #EAEFEF;        /* REPLACED → #ede7f6 gradient */
+--card: #FFFFFF;              /* REPLACED → #FFFFFF (same) */
+--border: #BFC9D1;            /* REPLACED → hsl(261 46% 84%) */
+--foreground: #25343F;        /* REPLACED → #1a0033 */
+--muted-foreground: #3D4D5C;  /* REPLACED → hsl(270 60% 25%) */
+--primary: #FF9B51;           /* REPLACED → #5e35b1 (deep purple) */
+--ring: #FF9B51;              /* REPLACED → #7e57c2 */
 ```
 
-##### Dark Theme (Default)
+##### Dark Theme (OBSOLETE)
 ```css
-/* Main Backgrounds */
---background: #25343F;        /* Page background */
---card: #1A242C;              /* Card/surface background */
-
-/* Borders & Secondary */
---border: #3D4D5C;            /* All borders, dividers */
---input: #3D4D5C;             /* Input field borders */
-
-/* Text Colors */
---foreground: #EAEFEF;        /* Primary text (headings, body) */
---muted-foreground: #BFC9D1;  /* Secondary/muted text */
-
-/* Accent / Buttons */
---primary: #FF9B51;           /* Accent color, primary buttons */
---primary-foreground: #25343F;/* Text on accent buttons (dark) */
---accent-hover: #FFB070;      /* Lighter orange on hover */
-
-/* Focus & Ring */
---ring: #FF9B51;              /* Focus ring color */
+/* ⚠️ OBSOLETE — replaced by Phase 4 Deep Purple Royal theme */
+--background: #25343F;        /* REPLACED → #1a0033 gradient */
+--card: #1A242C;              /* REPLACED → hsl(270 100% 12%) */
+--border: #3D4D5C;            /* REPLACED → hsl(262 47% 35%) */
+--foreground: #EAEFEF;        /* REPLACED → #f3e5f5 */
+--muted-foreground: #BFC9D1;  /* REPLACED → hsl(291 47% 80%) */
+--primary: #FF9B51;           /* REPLACED → #ce93d8 (bright lavender) */
+--ring: #FF9B51;              /* REPLACED → #b39ddb */
 ```
 
-##### Button States
+##### Button States (OBSOLETE)
 ```css
-/* Primary Button (Accent) */
-.button-primary {
-  background: #FF9B51;
-  color: white (light) / #25343F (dark);
-}
-
-.button-primary:hover {
-  background: #E88A42 (light) / #FFB070 (dark);
-}
-
-.button-primary:focus {
-  ring: 2px solid #FF9B51;
-  ring-offset: 2px;
-}
+/* ⚠️ OBSOLETE — see Phase 4 spec for .btn-gradient and .btn-primary */
 ```
 
-##### Input States
+##### Input States (OBSOLETE)
 ```css
-/* Default Input */
-.input {
-  border: 1px solid #BFC9D1 (light) / #3D4D5C (dark);
-  background: #FFFFFF (light) / #1A242C (dark);
-}
-
-.input:focus {
-  border-color: #FF9B51;
-  ring: 2px solid rgba(255, 155, 81, 0.2);
-}
-
-.input:hover {
-  border-color: rgba(255, 155, 81, 0.5);
-}
+/* ⚠️ OBSOLETE — see Phase 4 spec for .glass-input */
 ```
 
-##### Card Contrast Rules
+##### Card Contrast Rules (OBSOLETE)
 ```css
-/* Light Theme Card */
-.card-light {
-  background: #FFFFFF;
-  border: 1px solid #BFC9D1;
-  /* Text: #25343F on white = 11.9:1 contrast ✓ */
-}
-
-/* Dark Theme Card */
-.card-dark {
-  background: #1A242C;
-  border: 1px solid #3D4D5C;
-  /* Text: #EAEFEF on #1A242C = 10.8:1 contrast ✓ */
-}
+/* ⚠️ OBSOLETE — see Phase 4 spec for glass-card contrast rules */
 ```
 
-#### Semantic Colors (Status)
+</details>
+
+#### Semantic Colors (Status) — STILL ACTIVE
 ```css
-/* Success - task completion, positive feedback */
+/* These values are unchanged between Phase 3 and Phase 4 */
 --success: #10B981;
-
-/* Warning - medium priority, alerts */
 --warning: #F59E0B;
-
-/* Danger - high priority, destructive actions */
 --danger: #EF4444;
 ```
 
 #### ❌ REMOVED / DEPRECATED
 The following colors are NO LONGER USED:
-- ~~Violet/Purple gradients~~
-- ~~Cyan/Teal accents~~
-- ~~lumina-accent-*~~
-- ~~Any yellow/brown variants~~
+- ~~Violet/Purple gradients~~ (Phase 3 early iteration)
+- ~~Cyan/Teal accents~~ (Phase 3 early iteration)
+- ~~lumina-accent-*~~ (Phase 3 early iteration)
+- ~~Any yellow/brown variants~~ (Phase 3 early iteration)
+- ~~Orange accent `#FF9B51`~~ (entire Phase 3 palette — replaced by Phase 4 Deep Purple Royal)
+- ~~Slate grays `#25343F`, `#1A242C`, `#3D4D5C`~~ (replaced by deep purples in Phase 4)
 
 ### 4.2 Typography
 

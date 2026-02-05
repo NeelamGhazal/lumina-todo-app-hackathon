@@ -16,6 +16,9 @@
 3. Run `npm run build` at each checkpoint
 4. Mark task complete only after verification
 5. **Design-only tasks** - no logic or feature changes
+6. **Colors MUST match spec.md exactly** - no approximations
+7. **Do NOT invent new colors** - only use values from spec.md
+8. **If UI deviates from spec theme, the task is FAILED and must be redone**
 
 ---
 
@@ -486,4 +489,145 @@ cd frontend && npm run build
 
 ---
 
-*These tasks enable recreation of the Lumina theme following spec.md and plan.md.*
+## PHASE 7: Theme Compliance Audit (MANDATORY)
+
+### T018: Verify All Colors Match Spec
+**Type**: Verification | **Priority**: P0
+
+**Steps**:
+1. Open `specs/004-lumina-theme-redesign/spec.md`
+2. Compare EVERY color in `globals.css` against spec tables
+3. Compare EVERY color in `tailwind.config.ts` against spec tables
+4. Flag any color that does not appear in spec
+
+**Acceptance**:
+- [ ] Every hex color in globals.css exists in spec.md
+- [ ] Every hex color in tailwind.config.ts exists in spec.md
+- [ ] No undocumented colors introduced
+- [ ] **If ANY mismatch is found: STOP and fix before proceeding**
+
+---
+
+### T019: Verify Light Theme Visual Compliance
+**Type**: Verification | **Priority**: P0
+
+**Steps**:
+1. Load each page (`/`, `/login`, `/signup`, `/tasks`) in light theme
+2. Verify against spec.md:
+   - Page background: `#ede7f6` gradient
+   - Body text: `#1a0033` (very dark purple)
+   - Buttons: `#5e35b1` bg with `#FFFFFF` text
+   - Gradient text: `#4a148c → #5e35b1 → #7e57c2`
+   - Logo: `#4a148c` box, `#f3e5f5` text
+   - Muted text: `hsl(270 60% 25%)`
+
+**Acceptance**:
+- [ ] Background is lavender gradient, NOT white, NOT grey
+- [ ] All text is dark purple, NOT light, NOT invisible
+- [ ] Buttons are dark purple with white text, NOT faded
+- [ ] Gradient headlines are dark and readable
+- [ ] Logo box is dark purple with light text
+
+---
+
+### T020: Verify Dark Theme Visual Compliance
+**Type**: Verification | **Priority**: P0
+
+**Steps**:
+1. Load each page in dark theme
+2. Verify against spec.md:
+   - Page background: `#1a0033` gradient
+   - Body text: `#f3e5f5` (bright lavender)
+   - Buttons: `#ce93d8` bg with `#1a0033` text
+   - Gradient text: `#e1bee7 → #ce93d8 → #f3e5f5`
+   - Logo: `#ede7f6` box, `#4a148c` text
+   - Muted text: `hsl(291 47% 80%)`
+
+**Acceptance**:
+- [ ] Background is deep purple gradient, NOT black, NOT grey
+- [ ] All text is bright lavender, NOT dark, NOT invisible
+- [ ] Buttons are bright lavender with dark text, NOT faded
+- [ ] Gradient headlines are bright and readable
+- [ ] Logo box is light with dark text
+
+---
+
+### T021: Verify Modal & Dialog Compliance
+**Type**: Verification | **Priority**: P0
+
+**Steps**:
+1. Open Add Task modal in both themes
+2. Open Delete confirmation dialog in both themes
+3. Open Calendar popover in both themes
+4. Open Select dropdowns in both themes
+
+**Acceptance**:
+- [ ] Add Task modal: light `#d1c3e9` bg / dark `#4e2f83` bg
+- [ ] Delete dialog: light `#ffffff` bg / dark `#2e1a47` bg
+- [ ] Calendar: light `#ffffff` bg / dark `#1e1e2e` bg
+- [ ] All text readable in both themes
+- [ ] Input fields properly styled in both themes
+
+---
+
+### T022: Verify Priority Badges Compliance
+**Type**: Verification | **Priority**: P0
+
+**Steps**:
+1. View tasks with high, medium, and low priority in both themes
+
+**Acceptance**:
+- [ ] Light: High=`#fee2e2`/`#991b1b`, Medium=`#fef3c7`/`#92400e`, Low=`#dcfce7`/`#166534`
+- [ ] Dark: High=`rgba(127,29,29,0.3)`/`#f87171`, Medium=`rgba(120,53,15,0.3)`/`#fbbf24`, Low=`rgba(20,83,45,0.3)`/`#4ade80`
+
+---
+
+### CHECKPOINT 7: Theme Compliance
+- [ ] All colors match spec.md exactly
+- [ ] Light theme fully compliant
+- [ ] Dark theme fully compliant
+- [ ] Modals and dialogs compliant
+- [ ] Priority badges compliant
+- [ ] Build passes with zero errors
+- [ ] **No undocumented colors exist in the codebase**
+
+---
+
+## Rejection Criteria (BINDING)
+
+A task is **FAILED** and must be redone if ANY of the following are true:
+
+| # | Rejection Condition |
+|---|---------------------|
+| R1 | A color not documented in spec.md is introduced |
+| R2 | Text is unreadable (fails WCAG AA) in either theme |
+| R3 | Button contrast fails in either theme |
+| R4 | Gradient text is invisible or blends with background |
+| R5 | Logo colors don't properly invert between themes |
+| R6 | Build fails with errors |
+| R7 | Layout or structure is changed |
+| R8 | Light/dark theme behavior is altered |
+| R9 | Glassmorphism effects are removed or degraded |
+| R10 | Theme toggle produces flash or visual glitch |
+
+**Any violation = task rejected. Fix and re-verify.**
+
+---
+
+## Updated Summary
+
+| Phase | Tasks | Focus |
+|-------|-------|-------|
+| Phase 1 | T001-T003 | Color tokens & gradients |
+| Phase 2 | T004-T005 | Text visibility overrides |
+| Phase 3 | T006-T007 | Gradient text component |
+| Phase 4 | T008-T010 | Button styling |
+| Phase 5 | T011-T013 | Logo box styling |
+| Phase 6 | T014-T017 | Validation |
+| **Phase 7** | **T018-T022** | **Theme compliance audit (MANDATORY)** |
+
+**Total**: 22 tasks (17 design + 5 compliance verification)
+
+---
+
+*These tasks enforce EXACT recreation of the Lumina theme. spec.md is the canonical reference. Any deviation is a defect.*

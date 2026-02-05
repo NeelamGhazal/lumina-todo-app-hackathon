@@ -263,4 +263,130 @@ After implementation, verify:
 
 ---
 
-*This specification is the source of truth for recreating the Lumina Deep Purple Royal theme.*
+## Modal & Dialog Tokens (Canonical)
+
+### Add Task Modal
+| Theme | Background | Text | Input BG | Input Border | Placeholder |
+|-------|-----------|------|----------|--------------|-------------|
+| Light | `#d1c3e9` | `#1a0033` | `#ede7f6` | `#4a148c` | `#5e35b1` (80% opacity) |
+| Dark | `#4e2f83` | `#f3e5f5` | `#38206a` | `#ce93d8` | `#ce93d8` (80% opacity) |
+
+### Delete Confirmation Dialog
+| Theme | Background | Text | Muted Text |
+|-------|-----------|------|------------|
+| Light | `#ffffff` | `#1a0033` | `#5e35b1` |
+| Dark | `#2e1a47` | `#f3e5f5` | `#ce93d8` |
+
+### Calendar Popover
+| Theme | Background | Text |
+|-------|-----------|------|
+| Light | `#ffffff` | `#1a1a1a` |
+| Dark | `#1e1e2e` | `#f3e5f5` |
+
+### Select Dropdown
+| Theme | Background | Text |
+|-------|-----------|------|
+| Light | `#ffffff` | `#1a1a1a` |
+| Dark | `#1e1e2e` | `#f3e5f5` |
+
+---
+
+## Avatar Tokens (Canonical)
+
+| Theme | Gradient | Text |
+|-------|---------|------|
+| Light | `linear-gradient(135deg, #5e35b1, #7e57c2)` | `#ffffff` |
+| Dark | `linear-gradient(135deg, #7e57c2, #ab47bc)` | `#ffffff` |
+
+---
+
+## Priority Badge Tokens (Canonical)
+
+### Light Theme
+| Priority | Background | Text |
+|----------|-----------|------|
+| High | `#fee2e2` | `#991b1b` |
+| Medium | `#fef3c7` | `#92400e` |
+| Low | `#dcfce7` | `#166534` |
+
+### Dark Theme
+| Priority | Background | Text |
+|----------|-----------|------|
+| High | `rgba(127, 29, 29, 0.3)` | `#f87171` |
+| Medium | `rgba(120, 53, 15, 0.3)` | `#fbbf24` |
+| Low | `rgba(20, 83, 45, 0.3)` | `#4ade80` |
+
+---
+
+## Semantic Colors (Canonical)
+
+| Name | Default | 400 | 500 |
+|------|---------|-----|-----|
+| Success | `#10B981` | `#34D399` | `#10B981` |
+| Warning | `#F59E0B` | `#FBBF24` | `#F59E0B` |
+| Danger | `#EF4444` | `#F87171` | `#EF4444` |
+
+---
+
+## Custom Shadow Tokens (Canonical)
+
+| Name | Value |
+|------|-------|
+| `shadow-glass` | `0 8px 32px rgba(0, 0, 0, 0.12)` |
+| `shadow-glass-lg` | `0 16px 48px rgba(0, 0, 0, 0.16)` |
+| `shadow-glass-xl` | `0 24px 64px rgba(0, 0, 0, 0.2)` |
+| `shadow-glow` | `0 0 20px rgba(126, 87, 194, 0.3)` |
+| `shadow-glow-lg` | `0 0 40px rgba(179, 157, 219, 0.4)` |
+
+---
+
+## Typography (Canonical)
+
+| Property | Value |
+|----------|-------|
+| Primary Font | `var(--font-inter), system-ui, sans-serif` |
+| Mono Font | `var(--font-jetbrains-mono), monospace` |
+| Font Smoothing | `-webkit-font-smoothing: antialiased` |
+
+---
+
+## THEME LOCK RULES (MANDATORY)
+
+> **This section is binding. All agents, skills, and implementations MUST obey these rules.**
+
+### Rule 1: Canonical Status
+This specification defines the **FINAL, CANONICAL** Lumina Deep Purple Royal theme. The values documented above are the **single source of truth** extracted from the live production codebase.
+
+### Rule 2: No Color Invention
+**Do NOT invent, modify, or "improve" any color values unless the user EXPLICITLY requests a specific change.** This includes:
+- No "adjusting for better contrast" without being asked
+- No substituting "similar" colors
+- No adding new gradient stops
+- No changing opacity values
+- No introducing new color tokens
+
+### Rule 3: No Theme Drift
+When implementing or modifying any UI component:
+- Match this spec EXACTLY
+- If a color is not documented here, check `globals.css` and `tailwind.config.ts` first
+- If adding a new component, derive colors from the existing palette in this spec
+- Never introduce colors outside the documented palette
+
+### Rule 4: Verification Required
+After ANY UI change, verify:
+1. Light theme matches all documented light values
+2. Dark theme matches all documented dark values
+3. Text contrast passes WCAG AA (4.5:1 normal, 3:1 large)
+4. No visual regression in either theme
+5. Build passes with zero errors
+
+### Rule 5: Spec Update Protocol
+If a theme change IS explicitly requested:
+1. Make the code change
+2. Update THIS spec.md with the new values
+3. Update plan.md and tasks.md accordingly
+4. Document the change reason
+
+---
+
+*This specification is the CANONICAL source of truth for the Lumina Deep Purple Royal theme. Any implementation that deviates from these values without explicit user request is a bug.*

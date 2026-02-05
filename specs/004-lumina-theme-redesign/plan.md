@@ -234,6 +234,69 @@ After implementation:
 | Button invisibility | Theme-aware CSS classes |
 | Glassmorphism browser support | Fallback backgrounds in `@supports` |
 | Theme flash on load | next-themes with class strategy |
+| **Theme drift during implementation** | **Mandatory spec validation phase (see below)** |
+| **Color invention by agent** | **Strict "no color invention" rule in spec** |
+
+---
+
+## PHASE 7: Theme Compliance Validation (MANDATORY)
+
+> **This phase is required after ANY implementation run that touches UI files.**
+
+### Step 1: Color Audit
+Compare every color in the codebase against spec.md:
+
+```bash
+# Extract all hex colors from globals.css
+grep -oP '#[0-9a-fA-F]{6}' frontend/src/app/globals.css | sort -u
+
+# Compare against spec.md palette
+# All colors MUST exist in spec.md
+```
+
+### Step 2: Visual Verification
+For EACH page (`/`, `/login`, `/signup`, `/tasks`):
+1. Load in light theme → verify text, buttons, backgrounds match spec
+2. Load in dark theme → verify text, buttons, backgrounds match spec
+3. Toggle between themes → verify smooth transition, no flash
+
+### Step 3: Contrast Verification
+| Check | Light Theme | Dark Theme |
+|-------|-------------|------------|
+| Body text on background | `#1a0033` on `#ede7f6` | `#f3e5f5` on `#1a0033` |
+| Button text on button | `#FFFFFF` on `#5e35b1` | `#1a0033` on `#ce93d8` |
+| Muted text | `hsl(270 60% 25%)` on light | `hsl(291 47% 80%)` on dark |
+| Gradient text | Dark gradient on light bg | Bright gradient on dark bg |
+
+### Step 4: Build Verification
+```bash
+cd frontend && npm run build
+# MUST complete with ZERO errors and ZERO warnings related to styling
+```
+
+### Step 5: Rejection Criteria
+**If ANY of the following are true, the implementation is REJECTED:**
+- A color not in spec.md is introduced
+- Text is unreadable in either theme
+- Button contrast fails in either theme
+- Gradient text is invisible in either theme
+- Logo colors don't invert between themes
+- Build fails
+- Layout changes occurred
+
+---
+
+## Theme Lock Enforcement
+
+### For All Future Changes
+1. **Read spec.md FIRST** before touching any UI file
+2. **Match spec exactly** — do not approximate or "improve"
+3. **Verify in BOTH themes** after every change
+4. **Update spec if changing theme** — code and spec must always match
+5. **Never introduce new colors** without explicit user request
+
+### Spec is Canonical
+The color values in `specs/004-lumina-theme-redesign/spec.md` are the **single source of truth**. When in doubt, spec wins over code. If code differs from spec, code is the bug.
 
 ---
 
@@ -246,4 +309,4 @@ After implementation:
 
 ---
 
-*This plan enables recreation of the Lumina theme following the spec.md design tokens.*
+*This plan enforces recreation of the EXACT Lumina theme as documented in spec.md. Any deviation is a defect.*

@@ -1,14 +1,21 @@
 """FastAPI application entry point."""
 
+import logging
+import traceback
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.core.config import get_settings
 from app.core.database import init_db
 from app.routers import auth_router, tasks_router
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
@@ -17,7 +24,14 @@ settings = get_settings()
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan handler."""
     # Startup: initialize database
-    await init_db()
+    try:
+        logger.info("Initializing database...")
+        await init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+        logger.error(traceback.format_exc())
+        # Continue anyway to allow diagnostic endpoints to work
     yield
     # Shutdown: cleanup if needed
 
@@ -54,3 +68,45 @@ async def root() -> dict:
 async def health_check() -> dict:
     """Health check endpoint."""
     return {"status": "ok", "version": "0.1.0"}
+
+
+@app.get("/api/debug/db")
+async def debug_db() -> dict:
+    """Debug endpoint to test database connectivity."""
+    from app.core.database import engine
+    import os
+
+    result = {
+        "database_url": settings.database_url,
+        "environment": settings.environment,
+        "cwd": os.getcwd(),
+        "data_dir_exists": os.path.exists("./data"),
+        "data_dir_writable": os.access("./data", os.W_OK) if os.path.exists("./data") else False,
+    }
+
+    try:
+        async with engine.begin() as conn:
+            from sqlalchemy import text
+            await conn.execute(text("SELECT 1"))
+        result["db_connection"] = "success"
+    except Exception as e:
+        result["db_connection"] = "failed"
+        result["db_error"] = str(e)
+        result["db_traceback"] = traceback.format_exc()
+
+    return result
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Global exception handler to return actual error details."""
+    logger.error(f"Unhandled exception: {exc}")
+    logger.error(traceback.format_exc())
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": str(exc),
+            "type": type(exc).__name__,
+            "traceback": traceback.format_exc() if settings.is_development else None,
+        },
+    )
