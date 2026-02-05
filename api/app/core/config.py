@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     )
 
     # Database - SQLite for hackathon-safe deployment
-    database_url: str = "sqlite+aiosqlite:///./evolution_todo.db"
+    database_url: str = "sqlite+aiosqlite:///./data/evolution_todo.db"
 
     # JWT
     jwt_secret_key: str = "dev-secret-key-change-in-production"

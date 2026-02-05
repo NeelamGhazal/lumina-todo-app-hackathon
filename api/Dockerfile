@@ -9,10 +9,9 @@ ENV PORT=7860
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (minimal for SQLite)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
@@ -25,8 +24,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application code
 COPY app/ ./app/
 
-# Create non-root user for security
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+# Create data directory for SQLite and non-root user for security
+RUN mkdir -p /app/data && \
+    useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
 USER appuser
 
 # Expose port (HF Spaces default is 7860)

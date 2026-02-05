@@ -35,7 +35,7 @@ FastAPI backend for the Lumina Todo application.
 
 Set these in HF Spaces Settings → Variables:
 
-- `DATABASE_URL` - Database connection string
+- `DATABASE_URL` - Database connection string (default: `sqlite+aiosqlite:///./data/evolution_todo.db`)
 - `JWT_SECRET_KEY` - Secret key for JWT tokens
 - `FRONTEND_URL` - Vercel frontend URL for CORS
 - `ENVIRONMENT` - Set to `production`
