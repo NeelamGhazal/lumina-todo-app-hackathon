@@ -103,8 +103,8 @@
 
 ### Test Setup
 
-- [ ] T024 Create `chatbot/tests/__init__.py` and `chatbot/tests/conftest.py` with pytest fixtures: test database session, mock user_id, cleanup utilities
-- [ ] T025 Add dev dependencies to `chatbot/pyproject.toml`: pytest, pytest-asyncio, pytest-cov, httpx
+- [x] T024 Create `chatbot/tests/__init__.py` and `chatbot/tests/conftest.py` with pytest fixtures: test database session, mock user_id, cleanup utilities
+- [x] T025 Add dev dependencies to `chatbot/pyproject.toml`: pytest, pytest-asyncio, pytest-cov, httpx
 
 ### Tool Unit Tests
 
