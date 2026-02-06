@@ -78,8 +78,8 @@
 
 ### User Story 3 - complete_task (P2)
 
-- [ ] T018 [US3] Implement `complete_task` tool in `chatbot/mcp_server/tools/complete_task.py` with ownership verification, toggle logic, completed_at timestamp
-- [ ] T019 [US3] Register `complete_task` with MCP server and verify toggle behavior
+- [x] T018 [US3] Implement `complete_task` tool in `chatbot/mcp_server/tools/complete_task.py` with ownership verification, toggle logic, completed_at timestamp
+- [x] T019 [US3] Register `complete_task` with MCP server and verify toggle behavior
 
 ### User Story 4 - delete_task (P2)
 
