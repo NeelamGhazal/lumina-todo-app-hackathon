@@ -1,9 +1,11 @@
 # Task T008: FastAPI Application with MCP Server
+# Task T015: Register add_task with MCP server
 """MCP Server for Todo Operations - FastAPI application.
 
 Provides:
 - /health endpoint for health checks
-- /mcp endpoint for MCP protocol communication
+- /mcp/tools endpoint to list available tools
+- /mcp/call endpoint to execute tools
 - CORS middleware for cross-origin requests
 
 References:
@@ -11,18 +13,26 @@ References:
 - plan.md: ADR-001 (standalone FastAPI on port 8001)
 """
 
-import logging
 import traceback
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
+from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import ValidationError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from mcp_server.config import get_settings
-from mcp_server.database import init_db
+from mcp_server.database import init_db, get_db
 from mcp_server.logging import configure_logging, get_logger, set_correlation_id
+from mcp_server.schemas import ToolCallRequest, ErrorCode
+from mcp_server.tools import registry
+from mcp_server.tools.base import ToolError, build_error_response
+
+# Import tools to register them (T015, T017, T019, T021, T023)
+from mcp_server.tools import add_task  # noqa: F401 - registers tool
 
 settings = get_settings()
 
@@ -114,10 +124,87 @@ async def health_check() -> dict:
 async def list_mcp_tools() -> dict:
     """List available MCP tools.
 
-    Returns empty array until tools are registered in Phase 1C.
+    Returns array of registered tools with their JSON schemas.
     """
-    # TODO: Populate with registered tools in T015, T017, T019, T021, T023
-    return {"tools": []}
+    return {"tools": registry.list_tools()}
+
+
+@app.post("/mcp/call")
+async def call_mcp_tool(
+    request: ToolCallRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Execute an MCP tool.
+
+    Validates parameters against the tool's schema, executes the handler,
+    and returns the result or error.
+
+    Args:
+        request: Tool call request with tool name and parameters
+        db: Database session (injected)
+
+    Returns:
+        Tool result or error response
+    """
+    tool_name = request.tool
+    tool = registry.get(tool_name)
+
+    # Check if tool exists
+    if tool is None:
+        return {
+            "status": "error",
+            "error": {
+                "code": ErrorCode.VALIDATION_ERROR.value,
+                "message": f"Unknown tool: {tool_name}",
+                "details": {"available_tools": [t["name"] for t in registry.list_tools()]},
+            },
+        }
+
+    try:
+        # Validate parameters against tool's schema
+        params = tool.params_model(**request.parameters)
+
+        # Execute the tool handler
+        result = await tool.handler(params=params, db=db)
+
+        return {
+            "status": "success",
+            "data": result,
+        }
+
+    except ValidationError as e:
+        # Pydantic validation error
+        return {
+            "status": "error",
+            "error": {
+                "code": ErrorCode.VALIDATION_ERROR.value,
+                "message": "Invalid parameters",
+                "details": {"errors": e.errors()},
+            },
+        }
+
+    except ToolError as e:
+        # Tool-specific error
+        return {
+            "status": "error",
+            "error": build_error_response(e),
+        }
+
+    except Exception as e:
+        # Unexpected error
+        logger.error(
+            "tool_call_failed",
+            tool=tool_name,
+            error=str(e),
+        )
+        return {
+            "status": "error",
+            "error": {
+                "code": ErrorCode.INTERNAL_ERROR.value,
+                "message": "Tool execution failed",
+                "details": {"error": str(e)} if settings.is_development else None,
+            },
+        }
 
 
 @app.exception_handler(Exception)
