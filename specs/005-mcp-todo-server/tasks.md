@@ -116,7 +116,7 @@
 
 ### Integration Tests
 
-- [ ] T031 Create `chatbot/tests/test_api.py` with integration tests: full request/response cycle, health check, tool listing, end-to-end tool flows
+- [x] T031 Create `chatbot/tests/test_api.py` with integration tests: full request/response cycle, health check, tool listing, end-to-end tool flows
 
 ### Documentation & Containerization
 
