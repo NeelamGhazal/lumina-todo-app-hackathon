@@ -108,11 +108,11 @@
 
 ### Tool Unit Tests
 
-- [ ] T026 [P] [US1] Create `chatbot/tests/test_add_task.py` with unit tests for add_task: valid creation, validation errors, database persistence
-- [ ] T027 [P] [US2] Create `chatbot/tests/test_list_tasks.py` with unit tests for list_tasks: filtering, empty results, user isolation
-- [ ] T028 [P] [US3] Create `chatbot/tests/test_complete_task.py` with unit tests for complete_task: toggle logic, not found, unauthorized
-- [ ] T029 [P] [US4] Create `chatbot/tests/test_delete_task.py` with unit tests for delete_task: successful delete, not found, unauthorized
-- [ ] T030 [P] [US5] Create `chatbot/tests/test_update_task.py` with unit tests for update_task: partial updates, validation, unauthorized
+- [x] T026 [P] [US1] Create `chatbot/tests/test_add_task.py` with unit tests for add_task: valid creation, validation errors, database persistence
+- [x] T027 [P] [US2] Create `chatbot/tests/test_list_tasks.py` with unit tests for list_tasks: filtering, empty results, user isolation
+- [x] T028 [P] [US3] Create `chatbot/tests/test_complete_task.py` with unit tests for complete_task: toggle logic, not found, unauthorized
+- [x] T029 [P] [US4] Create `chatbot/tests/test_delete_task.py` with unit tests for delete_task: successful delete, not found, unauthorized
+- [x] T030 [P] [US5] Create `chatbot/tests/test_update_task.py` with unit tests for update_task: partial updates, validation, unauthorized
 
 ### Integration Tests
 
