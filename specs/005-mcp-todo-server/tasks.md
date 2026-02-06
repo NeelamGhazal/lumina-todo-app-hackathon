@@ -122,7 +122,7 @@
 
 - [x] T032 Create `chatbot/README.md` with setup instructions, running locally, testing, API reference
 - [x] T033 Create `chatbot/Dockerfile` for containerization (Python 3.13, UV-based install)
-- [ ] T034 Run full test suite with coverage: `uv run pytest --cov=mcp_server --cov-report=term-missing` and verify 80%+ coverage
+- [x] T034 Run full test suite with coverage: `uv run pytest --cov=mcp_server --cov-report=term-missing` and verify 80%+ coverage
 
 **Checkpoint 4**: `uv run pytest` passes all tests, coverage report shows ≥80%, README complete, Dockerfile builds successfully
 
