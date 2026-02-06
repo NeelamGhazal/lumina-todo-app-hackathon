@@ -88,8 +88,8 @@
 
 ### User Story 5 - update_task (P3)
 
-- [ ] T022 [US5] Implement `update_task` tool in `chatbot/mcp_server/tools/update_task.py` with partial update support, validation, ownership check
-- [ ] T023 [US5] Register `update_task` with MCP server and verify updates persist
+- [x] T022 [US5] Implement `update_task` tool in `chatbot/mcp_server/tools/update_task.py` with partial update support, validation, ownership check
+- [x] T023 [US5] Register `update_task` with MCP server and verify updates persist
 
 **Checkpoint 3**: All 5 tools appear in `/mcp/tools`, each tool callable via curl per quickstart.md examples with correct success/error responses
 
