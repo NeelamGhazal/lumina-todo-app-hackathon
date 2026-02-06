@@ -73,7 +73,7 @@
 
 ### User Story 2 - list_tasks (P1)
 
-- [ ] T016 [US2] Implement `list_tasks` tool in `chatbot/mcp_server/tools/list_tasks.py` with status filtering (all/pending/completed), user isolation
+- [x] T016 [US2] Implement `list_tasks` tool in `chatbot/mcp_server/tools/list_tasks.py` with status filtering (all/pending/completed), user isolation
 - [ ] T017 [US2] Register `list_tasks` with MCP server and verify filtering works correctly
 
 ### User Story 3 - complete_task (P2)
