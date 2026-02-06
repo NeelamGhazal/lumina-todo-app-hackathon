@@ -46,9 +46,9 @@
 - [x] T005 [P] Create `chatbot/mcp_server/config.py` with Pydantic Settings for DATABASE_URL, MCP_SERVER_PORT, ENVIRONMENT, LOG_LEVEL
 - [x] T006 [P] Create `chatbot/mcp_server/database.py` with async SQLModel engine and session factory (reuse Phase II pattern from `api/database.py`)
 - [x] T007 [P] Create `chatbot/mcp_server/logging.py` with structlog JSON configuration for tool call logging (tool_name, user_id, latency_ms, status)
-- [ ] T008 Create `chatbot/mcp_server/main.py` with FastAPI app, `/health` endpoint, CORS middleware, and MCP server mount at `/mcp`
-- [ ] T009 Create `chatbot/mcp_server/__init__.py` with module exports
-- [ ] T010 Create `chatbot/.env.example` with all required environment variables
+- [x] T008 Create `chatbot/mcp_server/main.py` with FastAPI app, `/health` endpoint, CORS middleware, and MCP server mount at `/mcp`
+- [x] T009 Create `chatbot/mcp_server/__init__.py` with module exports
+- [x] T010 Create `chatbot/.env.example` with all required environment variables
 
 **Checkpoint 2**: Server starts with `uv run uvicorn mcp_server.main:app --port 8001`, `/health` returns `{"status": "healthy"}`, `/mcp/tools` returns empty array
 
