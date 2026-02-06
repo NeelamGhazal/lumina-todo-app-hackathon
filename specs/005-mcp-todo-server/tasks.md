@@ -43,9 +43,9 @@
 **Objective**: Server starts, `/health` returns 200, MCP endpoints accessible
 
 - [x] T004 Initialize `chatbot/` project with UV, create `pyproject.toml` with dependencies: fastapi, uvicorn, mcp, sqlmodel, pydantic, structlog, asyncpg
-- [ ] T005 [P] Create `chatbot/mcp_server/config.py` with Pydantic Settings for DATABASE_URL, MCP_SERVER_PORT, ENVIRONMENT, LOG_LEVEL
-- [ ] T006 [P] Create `chatbot/mcp_server/database.py` with async SQLModel engine and session factory (reuse Phase II pattern from `api/database.py`)
-- [ ] T007 [P] Create `chatbot/mcp_server/logging.py` with structlog JSON configuration for tool call logging (tool_name, user_id, latency_ms, status)
+- [x] T005 [P] Create `chatbot/mcp_server/config.py` with Pydantic Settings for DATABASE_URL, MCP_SERVER_PORT, ENVIRONMENT, LOG_LEVEL
+- [x] T006 [P] Create `chatbot/mcp_server/database.py` with async SQLModel engine and session factory (reuse Phase II pattern from `api/database.py`)
+- [x] T007 [P] Create `chatbot/mcp_server/logging.py` with structlog JSON configuration for tool call logging (tool_name, user_id, latency_ms, status)
 - [ ] T008 Create `chatbot/mcp_server/main.py` with FastAPI app, `/health` endpoint, CORS middleware, and MCP server mount at `/mcp`
 - [ ] T009 Create `chatbot/mcp_server/__init__.py` with module exports
 - [ ] T010 Create `chatbot/.env.example` with all required environment variables
