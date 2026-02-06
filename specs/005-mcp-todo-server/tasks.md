@@ -68,7 +68,7 @@
 
 ### User Story 1 - add_task (P1)
 
-- [ ] T014 [US1] Implement `add_task` tool in `chatbot/mcp_server/tools/add_task.py` with title/description validation, task creation, structured logging
+- [x] T014 [US1] Implement `add_task` tool in `chatbot/mcp_server/tools/add_task.py` with title/description validation, task creation, structured logging
 - [ ] T015 [US1] Register `add_task` with MCP server in `chatbot/mcp_server/main.py` and verify via `/mcp/tools` listing
 
 ### User Story 2 - list_tasks (P1)
