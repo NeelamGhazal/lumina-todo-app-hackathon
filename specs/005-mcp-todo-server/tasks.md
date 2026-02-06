@@ -64,7 +64,7 @@
 
 - [x] T011 Create `chatbot/mcp_server/schemas.py` with all Pydantic parameter models: AddTaskParams, ListTasksParams, CompleteTaskParams, DeleteTaskParams, UpdateTaskParams per contracts/mcp-tools.yaml
 - [x] T012 Create `chatbot/mcp_server/tools/__init__.py` with tool registry and registration decorator
-- [ ] T013 Create `chatbot/mcp_server/tools/base.py` with BaseTool class, error handling utilities, and response builders
+- [x] T013 Create `chatbot/mcp_server/tools/base.py` with BaseTool class, error handling utilities, and response builders
 
 ### User Story 1 - add_task (P1)
 
