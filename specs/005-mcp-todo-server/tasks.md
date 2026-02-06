@@ -83,8 +83,8 @@
 
 ### User Story 4 - delete_task (P2)
 
-- [ ] T020 [US4] Implement `delete_task` tool in `chatbot/mcp_server/tools/delete_task.py` with ownership verification, hard delete
-- [ ] T021 [US4] Register `delete_task` with MCP server and verify deletion
+- [x] T020 [US4] Implement `delete_task` tool in `chatbot/mcp_server/tools/delete_task.py` with ownership verification, hard delete
+- [x] T021 [US4] Register `delete_task` with MCP server and verify deletion
 
 ### User Story 5 - update_task (P3)
 

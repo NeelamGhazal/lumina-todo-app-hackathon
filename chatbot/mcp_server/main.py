@@ -35,6 +35,7 @@ from mcp_server.tools.base import ToolError, build_error_response
 from mcp_server.tools import add_task  # noqa: F401 - registers tool
 from mcp_server.tools import list_tasks  # noqa: F401 - registers tool (T017)
 from mcp_server.tools import complete_task  # noqa: F401 - registers tool (T019)
+from mcp_server.tools import delete_task  # noqa: F401 - registers tool (T021)
 
 settings = get_settings()
 
