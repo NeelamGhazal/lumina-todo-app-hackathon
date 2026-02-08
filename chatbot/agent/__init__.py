@@ -17,6 +17,16 @@ Components:
 
 from agent.config import AgentSettings, get_agent_settings
 from agent.schemas import ChatRequest, ChatResponse, ToolCallSummary
+from agent.client import (
+    OpenRouterClient,
+    get_openrouter_client,
+    initialize_agent,
+)
+from agent.tools import (
+    execute_mcp_tool,
+    get_openai_tools,
+    MCPToolError,
+)
 
 __all__ = [
     # Configuration
@@ -26,6 +36,14 @@ __all__ = [
     "ChatRequest",
     "ChatResponse",
     "ToolCallSummary",
+    # Client
+    "OpenRouterClient",
+    "get_openrouter_client",
+    "initialize_agent",
+    # Tools
+    "execute_mcp_tool",
+    "get_openai_tools",
+    "MCPToolError",
 ]
 
 __version__ = "0.1.0"

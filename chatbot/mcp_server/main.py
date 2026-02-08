@@ -27,11 +27,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from mcp_server.config import get_settings
 
 # Task T007: Import agent settings for health check
+# Task T013: Import agent initialization
 try:
     from agent.config import get_agent_settings
+    from agent.client import initialize_agent
     AGENT_AVAILABLE = True
 except ImportError:
     AGENT_AVAILABLE = False
+    initialize_agent = None  # type: ignore
 from mcp_server.database import init_db, get_db
 from mcp_server.logging import configure_logging, get_logger, set_correlation_id
 from mcp_server.schemas import ToolCallRequest, ErrorCode
@@ -58,6 +61,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     Startup:
     - Initialize database tables
+    - Initialize agent with MCP tools (Task T013)
     - Log startup message
 
     Shutdown:
@@ -68,6 +72,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("mcp_server_starting", port=settings.mcp_server_port)
         await init_db()
         logger.info("database_initialized")
+
+        # Task T013: Initialize agent with tools at startup
+        if AGENT_AVAILABLE and initialize_agent is not None:
+            agent_ready = await initialize_agent()
+            if agent_ready:
+                logger.info("agent_ready")
+            else:
+                logger.warning("agent_not_ready")
     except Exception as e:
         logger.error("startup_failed", error=str(e))
         # Continue anyway to allow diagnostic endpoints

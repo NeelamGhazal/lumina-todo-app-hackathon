@@ -178,3 +178,53 @@ def reset_client() -> None:
     global _client_instance
     _client_instance = None
     get_openrouter_client.cache_clear()
+
+
+# Task T013: Initialize client with tools at startup
+async def initialize_agent() -> bool:
+    """Initialize the agent client with MCP tools.
+
+    Should be called during application startup (lifespan handler).
+    Fetches tool schemas from MCP server and registers them with
+    the OpenRouter client.
+
+    Returns:
+        True if initialization succeeded, False otherwise
+
+    Note:
+        Per ADR-007, tools are loaded once at startup.
+        If MCP server is unavailable, agent will start without tools.
+    """
+    from agent.tools import get_openai_tools, MCPServerUnavailable
+
+    client = get_openrouter_client()
+
+    if not client.settings.is_configured:
+        logger.warning(
+            "agent_not_configured",
+            message="OPENROUTER_API_KEY not set",
+        )
+        return False
+
+    try:
+        tools = await get_openai_tools()
+        client.set_tools(tools)
+        logger.info(
+            "agent_initialized",
+            tool_count=len(tools),
+            model=client.settings.agent_model,
+        )
+        return True
+    except MCPServerUnavailable as e:
+        logger.warning(
+            "agent_init_mcp_unavailable",
+            error=str(e),
+            message="Agent starting without tools - MCP server unavailable",
+        )
+        return False
+    except Exception as e:
+        logger.error(
+            "agent_init_failed",
+            error=str(e),
+        )
+        return False

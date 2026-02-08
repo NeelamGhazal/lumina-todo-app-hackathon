@@ -47,12 +47,12 @@
 
 **Objective**: Agent can call MCP tools and receive results
 
-- [ ] T008 Create `chatbot/agent/tools.py` with `fetch_mcp_tools()` function to GET tool schemas from MCP server
-- [ ] T009 Implement `mcp_to_openai_function(mcp_tool)` converter in `chatbot/agent/tools.py` to transform MCP schemas to OpenAI function format
-- [ ] T010 Implement `get_openai_tools()` in `chatbot/agent/tools.py` to return all 5 tools in OpenAI format (user_id excluded from LLM-visible params)
-- [ ] T011 Implement `execute_mcp_tool(tool_name, arguments, user_id)` in `chatbot/agent/tools.py` to call MCP server's `/mcp/call` endpoint
-- [ ] T012 Add error handling in `chatbot/agent/tools.py` for MCP server unavailable, validation errors, and tool execution failures
-- [ ] T013 Update `chatbot/agent/client.py` to load tools at module initialization (startup loading per ADR-007)
+- [X] T008 Create `chatbot/agent/tools.py` with `fetch_mcp_tools()` function to GET tool schemas from MCP server
+- [X] T009 Implement `mcp_to_openai_function(mcp_tool)` converter in `chatbot/agent/tools.py` to transform MCP schemas to OpenAI function format
+- [X] T010 Implement `get_openai_tools()` in `chatbot/agent/tools.py` to return all 5 tools in OpenAI format (user_id excluded from LLM-visible params)
+- [X] T011 Implement `execute_mcp_tool(tool_name, arguments, user_id)` in `chatbot/agent/tools.py` to call MCP server's `/mcp/call` endpoint
+- [X] T012 Add error handling in `chatbot/agent/tools.py` for MCP server unavailable, validation errors, and tool execution failures
+- [X] T013 Update `chatbot/agent/client.py` to load tools at module initialization (startup loading per ADR-007)
 
 **Checkpoint 2**: All 5 MCP tools registered as OpenAI functions, tool execution works, errors handled gracefully
 
