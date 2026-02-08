@@ -45,19 +45,19 @@
 
 ### Core Layout
 
-- [ ] T006 [P] [US3] Create ChatContainer layout component in `frontend/src/components/Chat/ChatContainer.tsx`
+- [x] T006 [P] [US3] Create ChatContainer layout component in `frontend/src/components/Chat/ChatContainer.tsx`
   - Dark BG: `bg-gradient-to-br from-[#1a0033] via-[#2e003e] to-[#120024]`
   - Light BG: `bg-gradient-to-br from-[#ede7f6] to-[#d1c4e9]`
   - Full height flex layout, responsive max-w-4xl
 
-- [ ] T007 [P] [US2] Create MessageList scrollable component in `frontend/src/components/Chat/MessageList.tsx`
+- [x] T007 [P] [US2] Create MessageList scrollable component in `frontend/src/components/Chat/MessageList.tsx`
   - Scrollable container with ref for auto-scroll
   - Map over messages array
   - Empty state check
 
 ### Message Components
 
-- [ ] T008 [P] [US1] [US3] Create MessageBubble component in `frontend/src/components/Chat/MessageBubble.tsx`
+- [x] T008 [P] [US1] [US3] Create MessageBubble component in `frontend/src/components/Chat/MessageBubble.tsx`
   - User Dark: `bg-gradient-to-br from-[#ce93d8] to-[#e1bee7] text-[#1a0033]`
   - User Light: `bg-gradient-to-br from-[#5e35b1] to-[#4a148c] text-white`
   - AI Dark: `bg-white/5 backdrop-blur-[10px] text-[#f3e5f5]`
@@ -65,7 +65,7 @@
   - Markdown rendering with react-markdown
   - Relative timestamps with date-fns
 
-- [ ] T009 [P] [US1] Create MessageInput component in `frontend/src/components/Chat/MessageInput.tsx`
+- [x] T009 [P] [US1] Create MessageInput component in `frontend/src/components/Chat/MessageInput.tsx`
   - Dark: `bg-white/5 border-[#7e57c2]/30 text-[#f3e5f5] placeholder-[#ce93d8]/80`
   - Light: `bg-white/80 border-[#b39ddb]/50 text-[#1a0033] placeholder-[#5e35b1]/80`
   - Focus Dark: `focus:border-[#b39ddb] focus:ring-[#b39ddb]/15`
@@ -74,13 +74,13 @@
   - Enter sends, Shift+Enter newline
   - 500 char limit with counter
 
-- [ ] T010 [P] [US1] Create TypingIndicator component in `frontend/src/components/Chat/TypingIndicator.tsx`
+- [x] T010 [P] [US1] Create TypingIndicator component in `frontend/src/components/Chat/TypingIndicator.tsx`
   - Animated dots (Framer Motion)
   - Dark: `text-[#ce93d8]`
   - Light: `text-[#5e35b1]`
   - Fade-in animation
 
-- [ ] T011 [P] [US5] Create EmptyState component in `frontend/src/components/Chat/EmptyState.tsx`
+- [x] T011 [P] [US5] Create EmptyState component in `frontend/src/components/Chat/EmptyState.tsx`
   - Welcome message with AI avatar icon
   - 3 suggested prompts: "Add task...", "Show my tasks", "What's pending today?"
   - Clickable prompts insert text into input
@@ -88,22 +88,22 @@
 
 ### Page Integration
 
-- [ ] T012 [US1] Create barrel export in `frontend/src/components/Chat/index.ts`
+- [x] T012 [US1] Create barrel export in `frontend/src/components/Chat/index.ts`
 
-- [ ] T013 [US1] Create chat page route in `frontend/src/app/(dashboard)/chat/page.tsx`
+- [x] T013 [US1] Create chat page route in `frontend/src/app/(dashboard)/chat/page.tsx`
   - Import and render ChatContainer
   - Protected route (require auth)
 
-- [ ] T014 [US1] Add chat link to sidebar navigation in `frontend/src/components/layout/sidebar.tsx`
+- [x] T014 [US1] Add chat link to sidebar navigation in `frontend/src/components/layout/sidebar.tsx`
   - Chat icon with "Chat" label
   - Active state styling
 
 **Checkpoint 2**: All UI components built
-- [ ] All 6 components render without errors
-- [ ] Lumina theme applied correctly (both modes)
-- [ ] Static mockup with dummy data looks professional
-- [ ] Responsive on 375px and 1920px viewports
-- [ ] Sidebar shows "Chat" link
+- [x] All 6 components render without errors
+- [x] Lumina theme applied correctly (both modes)
+- [x] Static mockup with dummy data looks professional
+- [x] Responsive on 375px and 1920px viewports
+- [x] Sidebar shows "Chat" link
 
 ---
 

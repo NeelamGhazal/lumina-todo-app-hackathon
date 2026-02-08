@@ -19,10 +19,12 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GradientText } from "@/components/ui/gradient-text";
 import { SidebarItem } from "./sidebar-item";
+import { SidebarLink } from "./sidebar-link";
 import { sidebarVariants, sidebarItemVariants } from "@/lib/animation-variants";
 
 export type FilterType = "all" | "active" | "completed";
@@ -121,6 +123,22 @@ export function Sidebar({
 
       {/* Navigation sections */}
       <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
+        {/* Task T014: Chat link */}
+        <div className="space-y-1">
+          {!isCollapsed && (
+            <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Assistant
+            </p>
+          )}
+          <SidebarLink
+            href="/chat"
+            icon={MessageCircle}
+            label="Chat"
+            isCollapsed={isCollapsed}
+            onClick={isMobile ? onCloseMobile : undefined}
+          />
+        </div>
+
         {/* T049: Filter items */}
         <div className="space-y-1">
           {!isCollapsed && (
