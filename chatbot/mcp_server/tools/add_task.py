@@ -10,11 +10,12 @@ References:
 - contracts/mcp-tools.yaml: AddTaskParams, AddTaskResponse
 """
 
+from datetime import date, time
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from mcp_server.models import Task
+from mcp_server.models import Task, TaskPriority, TaskCategory
 from mcp_server.schemas import AddTaskParams
 from mcp_server.logging import with_tool_logging, get_logger
 from mcp_server.tools import register_tool
@@ -27,9 +28,31 @@ from mcp_server.tools.base import (
 logger = get_logger("tools.add_task")
 
 
+def _parse_date(date_str: str | None) -> date | None:
+    """Parse date string in YYYY-MM-DD format."""
+    if not date_str:
+        return None
+    try:
+        return date.fromisoformat(date_str)
+    except ValueError:
+        logger.warning("invalid_date_format", date_str=date_str)
+        return None
+
+
+def _parse_time(time_str: str | None) -> time | None:
+    """Parse time string in HH:MM format."""
+    if not time_str:
+        return None
+    try:
+        return time.fromisoformat(time_str)
+    except ValueError:
+        logger.warning("invalid_time_format", time_str=time_str)
+        return None
+
+
 @register_tool(
     name="add_task",
-    description="Create a new task for a user. Requires user_id and title. Optional description.",
+    description="Create a new task for a user. Requires title. Supports description, priority (high/medium/low), category (work/personal/shopping/health/other), tags, due_date (YYYY-MM-DD), and due_time (HH:MM).",
     params_model=AddTaskParams,
 )
 @with_tool_logging("add_task")
@@ -54,22 +77,39 @@ async def add_task(params: AddTaskParams, db: AsyncSession) -> dict[str, Any]:
         ToolError: On database failure
     """
     try:
-        # Create task with required fields
+        # Parse optional date/time fields
+        parsed_due_date = _parse_date(params.due_date)
+        parsed_due_time = _parse_time(params.due_time)
+
+        # Map priority and category enums
+        priority = TaskPriority(params.priority.value)
+        category = TaskCategory(params.category.value)
+
+        # Create task with all fields
         task = Task(
             user_id=params.user_id,
             title=params.title,
             description=params.description,
+            priority=priority,
+            category=category,
+            tags=params.tags,
+            due_date=parsed_due_date,
+            due_time=parsed_due_time,
         )
 
         # Persist to database
         db.add(task)
         await db.flush()  # Get the ID without committing
+        await db.commit()  # Commit immediately to ensure task is saved
 
         logger.info(
             "task_created",
             task_id=str(task.id),
             user_id=str(params.user_id),
             title=params.title,
+            priority=priority.value,
+            category=category.value,
+            has_due_date=parsed_due_date is not None,
         )
 
         # Build response per FR-013

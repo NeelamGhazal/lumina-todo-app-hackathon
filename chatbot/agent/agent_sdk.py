@@ -67,12 +67,25 @@ def _configure_openrouter_client() -> None:
 
 
 @function_tool
-async def add_task(title: str, description: str = "") -> str:
+async def add_task(
+    title: str,
+    description: str = "",
+    priority: str = "medium",
+    category: str = "personal",
+    tags: str = "",
+    due_date: str = "",
+    due_time: str = "",
+) -> str:
     """Create a new task for the user.
 
     Args:
         title: The task title (required)
         description: Optional task description
+        priority: Task priority - "high", "medium", or "low" (default: medium)
+        category: Task category - "work", "personal", "shopping", "health", "other" (default: personal)
+        tags: Comma-separated list of tags (e.g., "urgent,meeting")
+        due_date: Due date in YYYY-MM-DD format (e.g., "2024-12-31")
+        due_time: Due time in HH:MM format, 24-hour (e.g., "14:30")
 
     Returns:
         JSON string with task creation result
@@ -85,11 +98,23 @@ async def add_task(title: str, description: str = "") -> str:
         return json.dumps({"error": "No user context available"})
 
     try:
-        result = await execute_mcp_tool(
-            "add_task",
-            {"title": title, "description": description} if description else {"title": title},
-            UUID(user_id),
-        )
+        # Build parameters
+        params: dict[str, Any] = {"title": title}
+
+        if description:
+            params["description"] = description
+        if priority and priority in ("high", "medium", "low"):
+            params["priority"] = priority
+        if category and category in ("work", "personal", "shopping", "health", "other"):
+            params["category"] = category
+        if tags:
+            params["tags"] = [t.strip() for t in tags.split(",") if t.strip()]
+        if due_date:
+            params["due_date"] = due_date
+        if due_time:
+            params["due_time"] = due_time
+
+        result = await execute_mcp_tool("add_task", params, UUID(user_id))
         return json.dumps(result)
     except MCPToolError as e:
         return json.dumps({"error": format_tool_error_for_user(e)})

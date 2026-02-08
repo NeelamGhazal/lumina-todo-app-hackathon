@@ -40,6 +40,22 @@ class ErrorCode(str, Enum):
 # === Tool Parameters ===
 
 
+class TaskPriorityEnum(str, Enum):
+    """Task priority levels for add_task."""
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+
+
+class TaskCategoryEnum(str, Enum):
+    """Task category types for add_task."""
+    WORK = "work"
+    PERSONAL = "personal"
+    SHOPPING = "shopping"
+    HEALTH = "health"
+    OTHER = "other"
+
+
 class AddTaskParams(BaseModel):
     """Parameters for add_task tool (FR-010-014).
 
@@ -47,6 +63,11 @@ class AddTaskParams(BaseModel):
         user_id: User's unique identifier (required)
         title: Task title, 1-200 chars (required)
         description: Optional task description, max 1000 chars
+        priority: Task priority (high/medium/low)
+        category: Task category
+        tags: List of tags
+        due_date: Due date in YYYY-MM-DD format
+        due_time: Due time in HH:MM format
     """
 
     user_id: UUID = Field(..., description="User's unique identifier")
@@ -60,6 +81,26 @@ class AddTaskParams(BaseModel):
         default=None,
         max_length=1000,
         description="Optional task description",
+    )
+    priority: TaskPriorityEnum = Field(
+        default=TaskPriorityEnum.MEDIUM,
+        description="Task priority: high, medium, or low",
+    )
+    category: TaskCategoryEnum = Field(
+        default=TaskCategoryEnum.PERSONAL,
+        description="Task category: work, personal, shopping, health, other",
+    )
+    tags: list[str] = Field(
+        default_factory=list,
+        description="List of tags for the task",
+    )
+    due_date: str | None = Field(
+        default=None,
+        description="Due date in YYYY-MM-DD format",
+    )
+    due_time: str | None = Field(
+        default=None,
+        description="Due time in HH:MM format (24-hour)",
     )
 
     @field_validator("title")
