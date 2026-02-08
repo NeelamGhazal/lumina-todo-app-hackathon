@@ -27,18 +27,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from mcp_server.config import get_settings
 
 # Task T007: Import agent settings for health check
-# Task T013: Import agent initialization
+# Task T013: Import agent initialization (now uses OpenAI Agents SDK)
 # Task T020-T022: Import agent chat and conversation functions
 try:
     from agent.config import get_agent_settings
-    from agent.client import initialize_agent
+    from agent.agent_sdk import initialize_agents_sdk, is_agent_ready
     from agent.chat import process_chat
     from agent.schemas import ChatRequest
     from agent.conversation import get_user_conversations, get_conversation_messages
     AGENT_AVAILABLE = True
 except ImportError:
     AGENT_AVAILABLE = False
-    initialize_agent = None  # type: ignore
+    initialize_agents_sdk = None  # type: ignore
+    is_agent_ready = None  # type: ignore
     process_chat = None  # type: ignore
     ChatRequest = None  # type: ignore
     get_user_conversations = None  # type: ignore
@@ -81,13 +82,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         await init_db()
         logger.info("database_initialized")
 
-        # Task T013: Initialize agent with tools at startup
-        if AGENT_AVAILABLE and initialize_agent is not None:
-            agent_ready = await initialize_agent()
+        # Task T013: Initialize OpenAI Agents SDK with OpenRouter at startup
+        if AGENT_AVAILABLE and initialize_agents_sdk is not None:
+            agent_ready = await initialize_agents_sdk()
             if agent_ready:
-                logger.info("agent_ready")
+                logger.info("agents_sdk_ready")
             else:
-                logger.warning("agent_not_ready")
+                logger.warning("agents_sdk_not_ready")
     except Exception as e:
         logger.error("startup_failed", error=str(e))
         # Continue anyway to allow diagnostic endpoints
@@ -264,28 +265,46 @@ async def call_mcp_tool(
 # =============================================================================
 
 
-@app.post("/chat")
+@app.post("/api/{user_id}/chat")
 async def chat_endpoint(
+    user_id: str,
     request: ChatRequest,
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     """Send message to agent and get response.
 
-    Task T020: Main chat endpoint per contracts/agent-api.yaml.
+    Task T020: Main chat endpoint per hackathon spec.
+    Hackathon compliance: POST /api/{user_id}/chat with user_id in URL path.
     Task T001-T002: Robust error handling - never returns 500.
 
     Args:
-        request: Chat request with message, user_id, optional conversation_id
+        user_id: User's unique identifier (UUID string) from URL path
+        request: Chat request with message and optional conversation_id
         db: Database session (injected)
 
     Returns:
         ChatResponse with message, conversation_id, and optional tool_calls.
         On error: Returns 200 with error flag (never 500).
     """
+    from uuid import UUID
+
+    # Validate user_id is a valid UUID
+    try:
+        user_uuid = UUID(user_id)
+    except ValueError:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": True,
+                "code": "INVALID_USER_ID",
+                "message": "user_id must be a valid UUID",
+            },
+        )
+
     # T003: Debug log - request received
     logger.debug(
         "chat_request_received",
-        user_id=str(request.user_id),
+        user_id=user_id,
         conversation_id=str(request.conversation_id) if request.conversation_id else None,
         message_length=len(request.message),
     )
@@ -305,12 +324,12 @@ async def chat_endpoint(
         # T003: Debug log - calling process_chat
         logger.debug(
             "chat_processing_start",
-            user_id=str(request.user_id),
+            user_id=user_id,
         )
 
         response = await process_chat(
             message=request.message,
-            user_id=request.user_id,
+            user_id=user_uuid,
             db=db,
             conversation_id=request.conversation_id,
         )
@@ -318,7 +337,7 @@ async def chat_endpoint(
         # T003: Debug log - response built
         logger.debug(
             "chat_processing_complete",
-            user_id=str(request.user_id),
+            user_id=user_id,
             conversation_id=str(response.conversation_id),
             has_tool_calls=bool(response.tool_calls),
         )
@@ -332,7 +351,7 @@ async def chat_endpoint(
             "chat_endpoint_failed",
             error=str(e),
             error_type=type(e).__name__,
-            user_id=str(request.user_id),
+            user_id=user_id,
             conversation_id=str(request.conversation_id) if request.conversation_id else None,
             traceback=error_traceback,
         )

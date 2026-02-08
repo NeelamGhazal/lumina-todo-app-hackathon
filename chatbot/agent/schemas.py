@@ -18,14 +18,14 @@ from pydantic import BaseModel, Field
 class ChatRequest(BaseModel):
     """Request to send message to agent.
 
+    Per hackathon spec: user_id is now in the URL path (/api/{user_id}/chat)
+
     Attributes:
         message: User's natural language message (1-4000 chars)
-        user_id: Authenticated user's ID
         conversation_id: Optional - continue specific conversation
     """
 
     message: str = Field(..., min_length=1, max_length=4000)
-    user_id: UUID
     conversation_id: UUID | None = None
 
 

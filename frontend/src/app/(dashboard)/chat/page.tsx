@@ -1,34 +1,62 @@
-// Task T013 + T018: Chat page route with useChat integration
+// Hackathon Compliance: ChatKit UI for Todo Assistant
+// Uses @openai/chatkit-react with custom backend configuration
 "use client";
 
-import { useEffect } from "react";
-import { ChatContainer } from "@/components/Chat";
-import { useChat } from "@/hooks/use-chat";
+import { useEffect, useRef } from "react";
+import { ChatKit, useChatKit } from "@openai/chatkit-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 
+// Environment configuration for ChatKit
+const CHATKIT_API_URL = process.env.NEXT_PUBLIC_CHATKIT_API_URL || "/api/chatkit";
+const CHATKIT_DOMAIN_KEY = process.env.NEXT_PUBLIC_OPENAI_DOMAIN_KEY || "";
+
 /**
- * ChatPage - Main chat interface for Todo Assistant
+ * ChatPage - Main chat interface using OpenAI ChatKit
  *
- * Protected route that requires authentication.
- * Uses useChat hook for state management and API integration.
+ * Per hackathon spec: Must use OpenAI ChatKit for frontend.
+ * Configures ChatKit with custom backend URL per documentation.
+ *
+ * Note: ChatKit requires a domain key from OpenAI for production use.
+ * For local development, you can test without the domain key.
  */
 export default function ChatPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const chatKitRef = useRef(null);
 
-  // Chat state from useChat hook
-  const {
-    messages,
-    isLoading,
-    isTyping,
-    error,
-    sendMessage,
-    retryLastFailed,
-    clearError,
-  } = useChat({
-    autoLoadHistory: true,
-    enablePolling: true,
+  // Initialize ChatKit with custom API configuration
+  const { control } = useChatKit({
+    api: {
+      url: CHATKIT_API_URL,
+      domainKey: CHATKIT_DOMAIN_KEY,
+      // Custom fetch to add auth headers
+      fetch: async (input, init) => {
+        const headers = new Headers(init?.headers);
+        // Add auth token if available
+        const token = localStorage.getItem("auth_token");
+        if (token) {
+          headers.set("Authorization", `Bearer ${token}`);
+        }
+        return fetch(input, { ...init, headers });
+      },
+    },
+    theme: "dark",
+    header: {
+      enabled: true,
+      title: {
+        enabled: true,
+        text: "Todo Assistant",
+      },
+    },
+    startScreen: {
+      greeting: "Welcome to Todo Assistant! I can help you manage your tasks.",
+      prompts: [
+        { label: "Add task", prompt: "Add a task to buy groceries" },
+        { label: "Show tasks", prompt: "Show my tasks" },
+        { label: "Pending", prompt: "What's pending today?" },
+      ],
+    },
   });
 
   // Redirect to login if not authenticated
@@ -53,16 +81,19 @@ export default function ChatPage() {
   }
 
   return (
-    <ChatContainer
-      messages={messages}
-      isLoading={isLoading}
-      isTyping={isTyping}
-      error={error}
-      onSendMessage={sendMessage}
-      onRetry={() => {
-        clearError();
-        retryLastFailed();
-      }}
-    />
+    <div className="h-screen flex flex-col bg-gradient-to-br from-[#1a0033] via-[#2e003e] to-[#120024]">
+      <div className="flex-1 w-full">
+        {/* OpenAI ChatKit Component per hackathon spec */}
+        <ChatKit
+          ref={chatKitRef}
+          control={control}
+          style={{
+            width: "100%",
+            height: "100%",
+            colorScheme: "dark",
+          }}
+        />
+      </div>
+    </div>
   );
 }

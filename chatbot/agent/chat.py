@@ -1,47 +1,31 @@
 # Task T018-T019: Chat Orchestration
-# Task T001-T003: Robust error handling and debug logging
+# Updated: Use OpenAI Agents SDK instead of manual client
 """Main chat orchestration for the agent.
 
-This module provides the core chat processing logic:
-- Message handling and context building
-- LLM interaction via OpenRouter
-- Tool execution loop with max rounds limit
-- Response formatting
+This module provides the core chat processing logic using the
+OpenAI Agents SDK with OpenRouter backend.
 
 References:
 - spec.md: FR-020-026 (agent requirements)
-- plan.md: ADR-005 (manual tool execution), risk mitigation (max 5 rounds)
-- data-model.md: Data flow section
+- hackathon spec: Must use OpenAI Agents SDK
 """
 
-import json
 import traceback
-from typing import Any
 from uuid import UUID
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from agent.config import get_agent_settings
-from agent.client import get_openrouter_client
 from agent.conversation import (
     get_or_create_conversation,
     get_context_messages,
     store_message,
     update_conversation_activity,
 )
-from agent.tools import (
-    execute_mcp_tool,
-    build_tool_result_message,
-    format_tool_error_for_user,
-    MCPToolError,
-)
+from agent.agent_sdk import run_agent, is_agent_ready
 from agent.schemas import ChatResponse, ToolCallSummary
 
 logger = structlog.get_logger(__name__)
-
-
-# === T018: Main Chat Processing ===
 
 
 async def process_chat(
@@ -55,9 +39,8 @@ async def process_chat(
     Main orchestration function that:
     1. Gets or creates conversation
     2. Builds context from message history
-    3. Sends to LLM with tool definitions
-    4. Executes any tool calls
-    5. Returns natural language response
+    3. Runs OpenAI Agents SDK with MCP tools
+    4. Returns natural language response
 
     Args:
         message: User's message
@@ -68,9 +51,6 @@ async def process_chat(
     Returns:
         ChatResponse with agent's reply and metadata
     """
-    settings = get_agent_settings()
-    client = get_openrouter_client()
-
     logger.info(
         "chat_processing_started",
         user_id=str(user_id),
@@ -89,18 +69,34 @@ async def process_chat(
     # Step 3: Build context messages
     context = await get_context_messages(db, conversation.id)
 
-    # Step 4: Build messages array for LLM
-    messages = _build_messages(settings.agent_instructions, context, message)
-
-    # Step 5: Execute chat with tool loop
+    # Step 4: Run agent with OpenAI Agents SDK
     tool_calls_summary: list[ToolCallSummary] = []
+    response_content: str
 
     try:
-        response_content, tool_calls_summary = await _execute_chat_with_tools(
-            client, messages, user_id, settings.max_tool_rounds
-        )
+        if not is_agent_ready():
+            logger.warning("agent_not_ready")
+            response_content = "I'm sorry, the AI assistant is not available right now. Please try again later."
+        else:
+            # Run the agent
+            response_text, tool_calls = await run_agent(
+                message=message,
+                user_id=user_id,
+                conversation_history=context,
+            )
+            response_content = response_text
+
+            # Convert tool calls to summary format
+            for tc in tool_calls:
+                tool_calls_summary.append(
+                    ToolCallSummary(
+                        tool=tc.get("tool", "unknown"),
+                        success=tc.get("success", True),
+                        result_preview=tc.get("result_preview"),
+                    )
+                )
+
     except Exception as e:
-        # T001: Log full error with traceback
         error_traceback = traceback.format_exc()
         logger.error(
             "chat_processing_failed",
@@ -112,13 +108,13 @@ async def process_chat(
         )
         response_content = "I'm sorry, I encountered an error processing your request. Please try again."
 
-    # Step 6: Store assistant response
+    # Step 5: Store assistant response
     await store_message(db, conversation.id, "assistant", response_content)
 
-    # Step 7: Update conversation activity
+    # Step 6: Update conversation activity
     await update_conversation_activity(db, conversation.id)
 
-    # Step 8: Commit transaction
+    # Step 7: Commit transaction
     await db.commit()
 
     logger.info(
@@ -133,260 +129,6 @@ async def process_chat(
         conversation_id=conversation.id,
         tool_calls=tool_calls_summary if tool_calls_summary else None,
     )
-
-
-def _build_messages(
-    system_instructions: str,
-    context: list[dict],
-    current_message: str,
-) -> list[dict[str, Any]]:
-    """Build messages array for LLM.
-
-    Args:
-        system_instructions: System prompt for the agent
-        context: Previous messages from conversation
-        current_message: Current user message
-
-    Returns:
-        List of messages in OpenAI format
-    """
-    messages = [
-        {"role": "system", "content": system_instructions},
-    ]
-
-    # Add context messages (already includes current if from DB)
-    # But we store user message before getting context, so it's included
-    messages.extend(context)
-
-    return messages
-
-
-# === T019: Tool Execution Loop ===
-
-
-async def _execute_chat_with_tools(
-    client: Any,
-    messages: list[dict[str, Any]],
-    user_id: UUID,
-    max_rounds: int,
-) -> tuple[str, list[ToolCallSummary]]:
-    """Execute chat with tool calling loop.
-
-    Implements the manual tool execution pattern (ADR-005):
-    1. Send messages to LLM
-    2. If LLM requests tool calls, execute them
-    3. Submit results back to LLM
-    4. Repeat until LLM gives final response or max rounds reached
-
-    Args:
-        client: OpenRouter client
-        messages: Initial messages array
-        user_id: User ID for tool execution
-        max_rounds: Maximum tool execution rounds
-
-    Returns:
-        Tuple of (response_content, tool_call_summaries)
-    """
-    tool_summaries: list[ToolCallSummary] = []
-    current_messages = messages.copy()
-    round_count = 0
-
-    while round_count < max_rounds:
-        round_count += 1
-
-        logger.debug(
-            "tool_loop_round",
-            round=round_count,
-            message_count=len(current_messages),
-        )
-
-        # T003: Debug log - calling OpenRouter
-        logger.debug(
-            "openrouter_call_start",
-            round=round_count,
-        )
-
-        try:
-            # Get LLM response
-            response = await client.create_chat_completion(current_messages)
-        except Exception as e:
-            # T001: Log OpenRouter call failure with traceback
-            error_traceback = traceback.format_exc()
-            logger.error(
-                "openrouter_call_failed",
-                error=str(e),
-                error_type=type(e).__name__,
-                round=round_count,
-                traceback=error_traceback,
-            )
-            raise
-
-        # T003: Debug log - OpenRouter response received
-        logger.debug(
-            "openrouter_call_complete",
-            round=round_count,
-            finish_reason=response.choices[0].finish_reason if response.choices else None,
-        )
-
-        choice = response.choices[0]
-        assistant_message = choice.message
-
-        # Check if LLM is done (no tool calls)
-        if choice.finish_reason == "stop" or not assistant_message.tool_calls:
-            return assistant_message.content or "", tool_summaries
-
-        # LLM wants to call tools
-        logger.debug(
-            "tool_calls_requested",
-            count=len(assistant_message.tool_calls),
-        )
-
-        # Add assistant's message with tool calls to context
-        current_messages.append({
-            "role": "assistant",
-            "content": assistant_message.content,
-            "tool_calls": [
-                {
-                    "id": tc.id,
-                    "type": "function",
-                    "function": {
-                        "name": tc.function.name,
-                        "arguments": tc.function.arguments,
-                    },
-                }
-                for tc in assistant_message.tool_calls
-            ],
-        })
-
-        # Execute each tool call
-        tool_results = []
-        for tool_call in assistant_message.tool_calls:
-            tool_name = tool_call.function.name
-            try:
-                arguments = json.loads(tool_call.function.arguments)
-            except json.JSONDecodeError:
-                arguments = {}
-
-            logger.debug(
-                "executing_tool",
-                tool=tool_name,
-                tool_call_id=tool_call.id,
-                arguments=arguments,
-            )
-
-            try:
-                result = await execute_mcp_tool(tool_name, arguments, user_id)
-
-                # T003: Debug log - tool result
-                logger.debug(
-                    "tool_execution_success",
-                    tool=tool_name,
-                    tool_call_id=tool_call.id,
-                    result_keys=list(result.keys()) if isinstance(result, dict) else "non-dict",
-                )
-
-                tool_results.append(
-                    build_tool_result_message(tool_call.id, result=result)
-                )
-                tool_summaries.append(
-                    ToolCallSummary(
-                        tool=tool_name,
-                        success=True,
-                        result_preview=_format_result_preview(tool_name, result),
-                    )
-                )
-            except MCPToolError as e:
-                # T003: Debug log - tool error
-                logger.debug(
-                    "tool_execution_error",
-                    tool=tool_name,
-                    tool_call_id=tool_call.id,
-                    error=str(e),
-                    error_code=e.code if hasattr(e, 'code') else None,
-                )
-
-                error_message = format_tool_error_for_user(e)
-                tool_results.append(
-                    build_tool_result_message(tool_call.id, error=error_message)
-                )
-                tool_summaries.append(
-                    ToolCallSummary(
-                        tool=tool_name,
-                        success=False,
-                        result_preview=error_message,
-                    )
-                )
-            except Exception as e:
-                # T001: Catch unexpected tool errors with traceback
-                error_traceback = traceback.format_exc()
-                logger.error(
-                    "tool_execution_unexpected_error",
-                    tool=tool_name,
-                    tool_call_id=tool_call.id,
-                    error=str(e),
-                    error_type=type(e).__name__,
-                    traceback=error_traceback,
-                )
-
-                error_message = f"Tool '{tool_name}' failed unexpectedly"
-                tool_results.append(
-                    build_tool_result_message(tool_call.id, error=error_message)
-                )
-                tool_summaries.append(
-                    ToolCallSummary(
-                        tool=tool_name,
-                        success=False,
-                        result_preview=error_message,
-                    )
-                )
-
-        # Add tool results to messages
-        current_messages.extend(tool_results)
-
-    # Max rounds reached - get final response without tools
-    logger.warning(
-        "tool_loop_max_rounds",
-        rounds=max_rounds,
-    )
-
-    response = await client.create_chat_completion(
-        current_messages, use_tools=False
-    )
-    return response.choices[0].message.content or "", tool_summaries
-
-
-def _format_result_preview(tool_name: str, result: dict[str, Any]) -> str:
-    """Format a brief preview of tool result.
-
-    Args:
-        tool_name: Name of the tool
-        result: Tool execution result
-
-    Returns:
-        Brief description of result
-    """
-    if tool_name == "add_task":
-        title = result.get("title", "task")
-        return f"Created task: {title}"
-
-    if tool_name == "list_tasks":
-        tasks = result.get("tasks", [])
-        return f"Found {len(tasks)} task(s)"
-
-    if tool_name == "complete_task":
-        status = result.get("status", "updated")
-        title = result.get("title", "task")
-        return f"Marked '{title}' as {status}"
-
-    if tool_name == "delete_task":
-        title = result.get("title", "task")
-        return f"Deleted task: {title}"
-
-    if tool_name == "update_task":
-        title = result.get("title", "task")
-        return f"Updated task: {title}"
-
-    return "Operation completed"
 
 
 # Export public API

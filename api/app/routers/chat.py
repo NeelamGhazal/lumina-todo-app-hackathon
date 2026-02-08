@@ -160,16 +160,16 @@ async def send_message(
     try:
         async with httpx.AsyncClient(timeout=AGENT_TIMEOUT) as client:
             # Build request payload for Part 2 agent
+            # Per hackathon spec: user_id is in URL path, not body
             payload = {
                 "message": request.message,
-                "user_id": user_id,
             }
             if request.conversation_id:
                 payload["conversation_id"] = request.conversation_id
 
-            # Forward to Part 2 agent
+            # Forward to Part 2 agent at /api/{user_id}/chat (hackathon spec)
             response = await client.post(
-                f"{AGENT_BASE_URL}/chat",
+                f"{AGENT_BASE_URL}/api/{user_id}/chat",
                 json=payload,
             )
 
