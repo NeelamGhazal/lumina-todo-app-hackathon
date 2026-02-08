@@ -85,6 +85,13 @@ export function ChatUI() {
             : msg
         )
       );
+
+      // Dispatch event to refresh task list if task-related tools were used
+      if (response.tool_calls?.some(tc =>
+        ["add_task", "complete_task", "delete_task", "update_task"].includes(tc.tool)
+      )) {
+        window.dispatchEvent(new CustomEvent("tasks-updated"));
+      }
     } catch (error) {
       const errorMessage =
         error instanceof ApiClientError
