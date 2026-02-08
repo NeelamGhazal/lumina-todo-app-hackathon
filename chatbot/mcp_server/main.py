@@ -272,46 +272,80 @@ async def chat_endpoint(
     """Send message to agent and get response.
 
     Task T020: Main chat endpoint per contracts/agent-api.yaml.
+    Task T001-T002: Robust error handling - never returns 500.
 
     Args:
         request: Chat request with message, user_id, optional conversation_id
         db: Database session (injected)
 
     Returns:
-        ChatResponse with message, conversation_id, and optional tool_calls
+        ChatResponse with message, conversation_id, and optional tool_calls.
+        On error: Returns 200 with error flag (never 500).
     """
+    # T003: Debug log - request received
+    logger.debug(
+        "chat_request_received",
+        user_id=str(request.user_id),
+        conversation_id=str(request.conversation_id) if request.conversation_id else None,
+        message_length=len(request.message),
+    )
+
     if not AGENT_AVAILABLE or process_chat is None:
+        logger.warning("chat_agent_unavailable")
         return JSONResponse(
             status_code=503,
             content={
-                "error": "AGENT_UNAVAILABLE",
-                "message": "Agent module is not available",
+                "error": True,
+                "code": "AGENT_UNAVAILABLE",
+                "message": "AI assistant is temporarily unavailable. Please try again later.",
             },
         )
 
     try:
+        # T003: Debug log - calling process_chat
+        logger.debug(
+            "chat_processing_start",
+            user_id=str(request.user_id),
+        )
+
         response = await process_chat(
             message=request.message,
             user_id=request.user_id,
             db=db,
             conversation_id=request.conversation_id,
         )
+
+        # T003: Debug log - response built
+        logger.debug(
+            "chat_processing_complete",
+            user_id=str(request.user_id),
+            conversation_id=str(response.conversation_id),
+            has_tool_calls=bool(response.tool_calls),
+        )
+
         return response.model_dump(mode="json")
 
     except Exception as e:
+        # T001: Log full error with traceback
+        error_traceback = traceback.format_exc()
         logger.error(
             "chat_endpoint_failed",
             error=str(e),
+            error_type=type(e).__name__,
             user_id=str(request.user_id),
+            conversation_id=str(request.conversation_id) if request.conversation_id else None,
+            traceback=error_traceback,
         )
-        return JSONResponse(
-            status_code=500,
-            content={
-                "error": "CHAT_FAILED",
-                "message": "Failed to process chat message",
-                "details": {"error": str(e)} if settings.is_development else None,
-            },
-        )
+
+        # T002: Return graceful error response (200 with error flag, never 500)
+        error_message = f"AI failed: {str(e)}" if settings.is_development else "AI assistant encountered an error. Please try again."
+        return {
+            "error": True,
+            "code": "CHAT_FAILED",
+            "message": error_message,
+            "conversation_id": str(request.conversation_id) if request.conversation_id else None,
+            "details": {"error": str(e), "type": type(e).__name__} if settings.is_development else None,
+        }
 
 
 @app.get("/conversations")

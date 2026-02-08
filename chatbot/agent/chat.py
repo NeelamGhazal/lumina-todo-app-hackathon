@@ -1,4 +1,5 @@
 # Task T018-T019: Chat Orchestration
+# Task T001-T003: Robust error handling and debug logging
 """Main chat orchestration for the agent.
 
 This module provides the core chat processing logic:
@@ -14,6 +15,7 @@ References:
 """
 
 import json
+import traceback
 from typing import Any
 from uuid import UUID
 
@@ -98,10 +100,15 @@ async def process_chat(
             client, messages, user_id, settings.max_tool_rounds
         )
     except Exception as e:
+        # T001: Log full error with traceback
+        error_traceback = traceback.format_exc()
         logger.error(
             "chat_processing_failed",
             error=str(e),
+            error_type=type(e).__name__,
             conversation_id=str(conversation.id),
+            user_id=str(user_id),
+            traceback=error_traceback,
         )
         response_content = "I'm sorry, I encountered an error processing your request. Please try again."
 
@@ -193,8 +200,34 @@ async def _execute_chat_with_tools(
             message_count=len(current_messages),
         )
 
-        # Get LLM response
-        response = await client.create_chat_completion(current_messages)
+        # T003: Debug log - calling OpenRouter
+        logger.debug(
+            "openrouter_call_start",
+            round=round_count,
+        )
+
+        try:
+            # Get LLM response
+            response = await client.create_chat_completion(current_messages)
+        except Exception as e:
+            # T001: Log OpenRouter call failure with traceback
+            error_traceback = traceback.format_exc()
+            logger.error(
+                "openrouter_call_failed",
+                error=str(e),
+                error_type=type(e).__name__,
+                round=round_count,
+                traceback=error_traceback,
+            )
+            raise
+
+        # T003: Debug log - OpenRouter response received
+        logger.debug(
+            "openrouter_call_complete",
+            round=round_count,
+            finish_reason=response.choices[0].finish_reason if response.choices else None,
+        )
+
         choice = response.choices[0]
         assistant_message = choice.message
 
@@ -238,10 +271,20 @@ async def _execute_chat_with_tools(
                 "executing_tool",
                 tool=tool_name,
                 tool_call_id=tool_call.id,
+                arguments=arguments,
             )
 
             try:
                 result = await execute_mcp_tool(tool_name, arguments, user_id)
+
+                # T003: Debug log - tool result
+                logger.debug(
+                    "tool_execution_success",
+                    tool=tool_name,
+                    tool_call_id=tool_call.id,
+                    result_keys=list(result.keys()) if isinstance(result, dict) else "non-dict",
+                )
+
                 tool_results.append(
                     build_tool_result_message(tool_call.id, result=result)
                 )
@@ -253,7 +296,39 @@ async def _execute_chat_with_tools(
                     )
                 )
             except MCPToolError as e:
+                # T003: Debug log - tool error
+                logger.debug(
+                    "tool_execution_error",
+                    tool=tool_name,
+                    tool_call_id=tool_call.id,
+                    error=str(e),
+                    error_code=e.code if hasattr(e, 'code') else None,
+                )
+
                 error_message = format_tool_error_for_user(e)
+                tool_results.append(
+                    build_tool_result_message(tool_call.id, error=error_message)
+                )
+                tool_summaries.append(
+                    ToolCallSummary(
+                        tool=tool_name,
+                        success=False,
+                        result_preview=error_message,
+                    )
+                )
+            except Exception as e:
+                # T001: Catch unexpected tool errors with traceback
+                error_traceback = traceback.format_exc()
+                logger.error(
+                    "tool_execution_unexpected_error",
+                    tool=tool_name,
+                    tool_call_id=tool_call.id,
+                    error=str(e),
+                    error_type=type(e).__name__,
+                    traceback=error_traceback,
+                )
+
+                error_message = f"Tool '{tool_name}' failed unexpectedly"
                 tool_results.append(
                     build_tool_result_message(tool_call.id, error=error_message)
                 )
