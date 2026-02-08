@@ -115,12 +115,12 @@
 
 ### API Layer
 
-- [ ] T015 [P] [US1] Create TypeScript types in `frontend/src/types/chat.ts`
+- [x] T015 [P] [US1] Create TypeScript types in `frontend/src/types/chat.ts`
   - `interface Message` (id, role, content, created_at, status?)
   - `interface ChatResponse` (message, conversation_id, tool_calls?)
   - `type MessageRole = "user" | "assistant"`
 
-- [ ] T016 [P] [US1] Create chat API client in `frontend/src/lib/api/chat.ts`
+- [x] T016 [P] [US1] Create chat API client in `frontend/src/lib/api/chat.ts`
   - `sendMessage(message: string, conversationId?: string): Promise<ChatResponse>`
   - `getHistory(conversationId?: string): Promise<Message[]>`
   - `getConversations(): Promise<ConversationSummary[]>`
@@ -129,13 +129,13 @@
 
 ### State Management
 
-- [ ] T017 [US1] [US2] Create useChat hook in `frontend/src/hooks/useChat.ts`
+- [x] T017 [US1] [US2] Create useChat hook in `frontend/src/hooks/use-chat.ts`
   - State: messages, isLoading, error, isTyping, conversationId
   - `sendMessage(text)`: optimistic update → API call → success/error handling
   - `loadHistory()`: fetch and set messages on mount
   - useEffect to load history on mount
 
-- [ ] T018 [US1] Integrate useChat in ChatContainer in `frontend/src/components/Chat/ChatContainer.tsx`
+- [x] T018 [US1] Integrate useChat in ChatContainer in `frontend/src/app/(dashboard)/chat/page.tsx`
   - Pass messages to MessageList
   - Pass sendMessage to MessageInput
   - Pass isLoading/isTyping to components
@@ -143,25 +143,25 @@
 
 ### Real-Time Updates
 
-- [ ] T019 [US2] Implement polling for new messages in `frontend/src/hooks/useChat.ts`
+- [x] T019 [US2] Implement polling for new messages in `frontend/src/hooks/use-chat.ts`
   - Poll getHistory every 3 seconds when page visible
   - Use Page Visibility API: document.visibilityState
   - Deduplicate messages by ID
   - Stop polling when page hidden
 
-- [ ] T020 [US2] Implement auto-scroll behavior in `frontend/src/components/Chat/MessageList.tsx`
+- [x] T020 [US2] Implement auto-scroll behavior in `frontend/src/components/Chat/ChatContainer.tsx`
   - scrollIntoView({ behavior: "smooth" }) on new message
   - Only scroll if user is near bottom (within 100px)
   - Preserve scroll position if user scrolled up manually
 
 **Checkpoint 3**: End-to-end messaging works
-- [ ] Can send message and receive AI response
-- [ ] History loads on page mount
-- [ ] Conversation ID persists across messages
-- [ ] Real-time updates via polling (within 3s)
-- [ ] Auto-scroll working
-- [ ] Error states display correctly
-- [ ] Retry button works for failed messages
+- [x] Can send message and receive AI response
+- [x] History loads on page mount
+- [x] Conversation ID persists across messages
+- [x] Real-time updates via polling (within 3s)
+- [x] Auto-scroll working
+- [x] Error states display correctly
+- [x] Retry button works for failed messages
 
 ---
 
