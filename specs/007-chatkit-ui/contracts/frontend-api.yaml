@@ -1,0 +1,274 @@
+# Frontend API Contract: ChatKit UI
+#
+# Defines the TypeScript interfaces and API client functions
+# for the ChatKit UI frontend components.
+#
+# Feature: 007-chatkit-ui
+# Date: 2026-02-08
+
+openapi: 3.0.3
+info:
+  title: ChatKit UI Frontend API
+  description: |
+    Frontend API client contract for ChatKit UI.
+    Calls Part 2 OpenRouter Agent endpoints directly.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8001
+    description: Part 2 OpenRouter Agent (development)
+
+paths:
+  /chat:
+    post:
+      operationId: sendMessage
+      summary: Send message to AI assistant
+      description: |
+        Sends a user message to the OpenRouter agent and receives
+        an AI response. Creates or continues a conversation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Agent unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /conversations:
+    get:
+      operationId: listConversations
+      summary: List user's conversations
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Conversations retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationsResponse'
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /conversations/{conversation_id}/messages:
+    get:
+      operationId: getConversationMessages
+      summary: Get messages in a conversation
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+      responses:
+        '200':
+          description: Messages retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagesResponse'
+        '404':
+          description: Conversation not found or unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+        - user_id
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 4000
+          description: User's natural language message
+        user_id:
+          type: string
+          format: uuid
+          description: Authenticated user's ID
+        conversation_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Optional - continue specific conversation
+
+    ChatResponse:
+      type: object
+      required:
+        - message
+        - conversation_id
+      properties:
+        message:
+          type: string
+          description: AI assistant's response (may contain markdown)
+        conversation_id:
+          type: string
+          format: uuid
+          description: Conversation ID for continuity
+        tool_calls:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ToolCallSummary'
+          description: Summary of tools used (optional)
+
+    ToolCallSummary:
+      type: object
+      required:
+        - tool
+        - success
+      properties:
+        tool:
+          type: string
+          enum: [add_task, list_tasks, complete_task, delete_task, update_task]
+        success:
+          type: boolean
+        result_preview:
+          type: string
+          nullable: true
+
+    Message:
+      type: object
+      required:
+        - id
+        - role
+        - content
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    ConversationSummary:
+      type: object
+      required:
+        - id
+        - created_at
+        - last_activity
+        - message_count
+      properties:
+        id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        last_activity:
+          type: string
+          format: date-time
+        message_count:
+          type: integer
+        preview:
+          type: string
+          nullable: true
+          description: First user message, truncated to 100 chars
+
+    ConversationsResponse:
+      type: object
+      required:
+        - conversations
+      properties:
+        conversations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConversationSummary'
+
+    MessagesResponse:
+      type: object
+      required:
+        - messages
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          nullable: true
+          description: Additional error details

@@ -28,6 +28,17 @@ logger = structlog.get_logger(__name__)
 # === T014: Get or Create Conversation ===
 
 
+def _ensure_utc(dt: datetime) -> datetime:
+    """Ensure datetime is timezone-aware (UTC).
+
+    SQLite returns naive datetimes, but we need to compare with UTC times.
+    This normalizes the datetime to be timezone-aware.
+    """
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=UTC)
+    return dt
+
+
 async def get_or_create_conversation(
     db: AsyncSession,
     user_id: UUID,
@@ -58,7 +69,9 @@ async def get_or_create_conversation(
         conversation = await _get_conversation_by_id(db, conversation_id, user_id)
         if conversation:
             # Check if still active (within timeout)
-            if conversation.last_activity >= cutoff:
+            # Note: SQLite returns naive datetimes, so we normalize to UTC
+            last_activity = _ensure_utc(conversation.last_activity)
+            if last_activity >= cutoff:
                 logger.debug(
                     "conversation_continued",
                     conversation_id=str(conversation_id),
@@ -69,7 +82,7 @@ async def get_or_create_conversation(
                 logger.debug(
                     "conversation_expired",
                     conversation_id=str(conversation_id),
-                    last_activity=conversation.last_activity.isoformat(),
+                    last_activity=last_activity.isoformat(),
                 )
 
     # Find most recent active conversation for user

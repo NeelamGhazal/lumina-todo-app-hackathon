@@ -1,0 +1,320 @@
+# MCP Tools Contract: Todo Operations
+# Version: 1.0.0
+# Protocol: Model Context Protocol (MCP)
+
+openapi: "3.1.0"
+info:
+  title: MCP Todo Tools API
+  version: "1.0.0"
+  description: |
+    MCP server exposing todo CRUD operations as tools for AI agents.
+    Runs on port 8001 with HTTP/SSE transport.
+
+servers:
+  - url: http://localhost:8001
+    description: Local development
+  - url: https://mcp-todo.example.com
+    description: Production (TBD)
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      operationId: healthCheck
+      responses:
+        "200":
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy]
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /mcp/tools:
+    get:
+      summary: List available MCP tools
+      operationId: listTools
+      responses:
+        "200":
+          description: List of available tools
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ToolDefinition"
+
+  /mcp/call:
+    post:
+      summary: Execute an MCP tool
+      operationId: callTool
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ToolCallRequest"
+      responses:
+        "200":
+          description: Tool execution result (SSE stream)
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/ToolCallResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Tool not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    # === Tool Definitions ===
+
+    ToolDefinition:
+      type: object
+      required: [name, description, parameters]
+      properties:
+        name:
+          type: string
+          description: Tool identifier
+        description:
+          type: string
+          description: Human-readable description
+        parameters:
+          type: object
+          description: JSON Schema for tool parameters
+
+    ToolCallRequest:
+      type: object
+      required: [tool, parameters]
+      properties:
+        tool:
+          type: string
+          description: Name of the tool to execute
+          enum: [add_task, list_tasks, complete_task, delete_task, update_task]
+        parameters:
+          type: object
+          description: Tool-specific parameters
+
+    ToolCallResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [success, error]
+        data:
+          type: object
+          description: Tool-specific result data
+        error:
+          $ref: "#/components/schemas/ErrorResponse"
+
+    # === Tool Parameters ===
+
+    AddTaskParams:
+      type: object
+      required: [user_id, title]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User's unique identifier
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Task title
+        description:
+          type: string
+          maxLength: 1000
+          description: Optional task description
+
+    ListTasksParams:
+      type: object
+      required: [user_id]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User's unique identifier
+        status:
+          type: string
+          enum: [all, pending, completed]
+          default: all
+          description: Filter by task status
+
+    CompleteTaskParams:
+      type: object
+      required: [user_id, task_id]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User's unique identifier
+        task_id:
+          type: string
+          format: uuid
+          description: Task to complete/uncomplete
+
+    DeleteTaskParams:
+      type: object
+      required: [user_id, task_id]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User's unique identifier
+        task_id:
+          type: string
+          format: uuid
+          description: Task to delete
+
+    UpdateTaskParams:
+      type: object
+      required: [user_id, task_id]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User's unique identifier
+        task_id:
+          type: string
+          format: uuid
+          description: Task to update
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: New title (optional)
+        description:
+          type: string
+          maxLength: 1000
+          description: New description (optional)
+
+    # === Response Types ===
+
+    AddTaskResponse:
+      type: object
+      required: [task_id, status, title]
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [created]
+        title:
+          type: string
+
+    ListTasksResponse:
+      type: object
+      required: [tasks]
+      properties:
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaskSummary"
+
+    TaskSummary:
+      type: object
+      required: [id, title, completed]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        completed:
+          type: boolean
+        priority:
+          type: string
+          enum: [high, medium, low]
+        category:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    CompleteTaskResponse:
+      type: object
+      required: [task_id, status, title]
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [completed, pending]
+        title:
+          type: string
+
+    DeleteTaskResponse:
+      type: object
+      required: [task_id, status, title]
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [deleted]
+        title:
+          type: string
+
+    UpdateTaskResponse:
+      type: object
+      required: [task_id, status, title]
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [updated]
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    # === Error Types ===
+
+    ErrorResponse:
+      type: object
+      required: [status, code, message]
+      properties:
+        status:
+          type: string
+          enum: [error]
+        code:
+          type: string
+          enum:
+            - VALIDATION_ERROR
+            - TASK_NOT_FOUND
+            - UNAUTHORIZED
+            - DATABASE_ERROR
+            - INTERNAL_ERROR
+          description: Machine-readable error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error context

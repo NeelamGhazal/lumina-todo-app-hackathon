@@ -132,12 +132,60 @@ export const tasksApi = {
 };
 
 // =============================================================================
+// Chat Endpoints (Phase III - AI Assistant)
+// =============================================================================
+
+export interface ChatMessage {
+  message: string;
+  conversation_id?: string;
+}
+
+export interface ChatResponse {
+  message: string;
+  conversation_id: string;
+  tool_calls?: Array<{
+    tool: string;
+    success: boolean;
+    result_preview?: string;
+  }>;
+}
+
+export const chatApi = {
+  /**
+   * Send a message to the AI assistant
+   * Proxies through Phase II API to Part 2 agent
+   */
+  sendMessage: async (data: ChatMessage): Promise<ChatResponse> => {
+    return apiClient.post<ChatResponse>("/chat", data);
+  },
+
+  /**
+   * Get conversation history
+   */
+  getHistory: async (conversationId?: string): Promise<{ messages: Array<{ id: string; role: string; content: string; created_at: string }> }> => {
+    const params: Record<string, string> = {};
+    if (conversationId) {
+      params.conversation_id = conversationId;
+    }
+    return apiClient.get<{ messages: Array<{ id: string; role: string; content: string; created_at: string }> }>("/chat/history", params);
+  },
+
+  /**
+   * Check chat health
+   */
+  health: async (): Promise<{ status: string; agent_reachable: boolean }> => {
+    return apiClient.get<{ status: string; agent_reachable: boolean }>("/chat/health");
+  },
+};
+
+// =============================================================================
 // Export all APIs
 // =============================================================================
 
 export const api = {
   auth: authApi,
   tasks: tasksApi,
+  chat: chatApi,
 };
 
 export default api;

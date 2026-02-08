@@ -1,0 +1,271 @@
+# Agent API Contract: Chat Endpoints
+# Version: 1.0.0
+# Phase III Part 2: OpenAI Agent with MCP Integration
+
+openapi: "3.1.0"
+info:
+  title: Todo Agent Chat API
+  version: "1.0.0"
+  description: |
+    Chat API for conversational todo management via AI agent.
+    Uses OpenRouter (OpenAI-compatible) for LLM processing.
+    Integrates with MCP Server (Part 1) for task operations.
+
+servers:
+  - url: http://localhost:8001
+    description: Local development (shared with MCP server)
+
+paths:
+  /chat:
+    post:
+      summary: Send message to agent
+      operationId: chat
+      description: |
+        Send a natural language message to the todo assistant.
+        Agent will process the message, call MCP tools if needed,
+        and return a conversational response.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+            examples:
+              add_task:
+                summary: Add a task
+                value:
+                  message: "Add a task to buy groceries"
+                  user_id: "550e8400-e29b-41d4-a716-446655440000"
+              list_tasks:
+                summary: List tasks
+                value:
+                  message: "What's on my list?"
+                  user_id: "550e8400-e29b-41d4-a716-446655440000"
+              complete_task:
+                summary: Complete a task
+                value:
+                  message: "Mark task 5 as done"
+                  user_id: "550e8400-e29b-41d4-a716-446655440000"
+                  conversation_id: "660e8400-e29b-41d4-a716-446655440001"
+      responses:
+        "200":
+          description: Agent response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+              examples:
+                task_added:
+                  summary: Task added confirmation
+                  value:
+                    message: "I've added 'buy groceries' to your tasks."
+                    conversation_id: "660e8400-e29b-41d4-a716-446655440001"
+                    tool_calls:
+                      - tool: "add_task"
+                        success: true
+                        result_preview: "Created task: buy groceries"
+                task_list:
+                  summary: Task list response
+                  value:
+                    message: "Here are your tasks:\n\n1. Buy groceries (pending)\n2. Call dentist (completed)\n3. Finish report (pending)"
+                    conversation_id: "660e8400-e29b-41d4-a716-446655440001"
+                    tool_calls:
+                      - tool: "list_tasks"
+                        success: true
+                        result_preview: "Found 3 tasks"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /conversations:
+    get:
+      summary: List user's conversations
+      operationId: listConversations
+      description: Get all conversations for the authenticated user.
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User's unique identifier
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          description: Maximum conversations to return
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversations:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ConversationSummary"
+
+  /conversations/{conversation_id}/messages:
+    get:
+      summary: Get conversation messages
+      operationId: getConversationMessages
+      description: Get all messages in a specific conversation.
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Conversation ID
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User's unique identifier (for ownership verification)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 200
+          description: Maximum messages to return
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MessageResponse"
+        "404":
+          description: Conversation not found or unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      required: [message, user_id]
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 4000
+          description: User's natural language message
+        user_id:
+          type: string
+          format: uuid
+          description: Authenticated user's ID
+        conversation_id:
+          type: string
+          format: uuid
+          description: Optional - continue specific conversation
+
+    ChatResponse:
+      type: object
+      required: [message, conversation_id]
+      properties:
+        message:
+          type: string
+          description: Agent's natural language response
+        conversation_id:
+          type: string
+          format: uuid
+          description: Conversation ID for context continuity
+        tool_calls:
+          type: array
+          items:
+            $ref: "#/components/schemas/ToolCallSummary"
+          description: Optional summary of tools used
+
+    ToolCallSummary:
+      type: object
+      required: [tool, success]
+      properties:
+        tool:
+          type: string
+          enum: [add_task, list_tasks, complete_task, delete_task, update_task]
+          description: Tool that was called
+        success:
+          type: boolean
+          description: Whether the tool call succeeded
+        result_preview:
+          type: string
+          description: Brief description of result
+
+    ConversationSummary:
+      type: object
+      required: [id, created_at, last_activity, message_count]
+      properties:
+        id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        last_activity:
+          type: string
+          format: date-time
+        message_count:
+          type: integer
+        preview:
+          type: string
+          description: First user message (truncated to 100 chars)
+
+    MessageResponse:
+      type: object
+      required: [id, role, content, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error context

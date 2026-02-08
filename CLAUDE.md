@@ -213,6 +213,12 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - TypeScript 5.x (strict mode, no `any` types) (002-phase2-todo-frontend)
 - Python 3.11+ with FastAPI, SQLModel, JWT (api/)
 - Next.js 16 with App Router, Tailwind CSS (frontend/)
+- Python 3.13+ + FastAPI, MCP SDK (`mcp`), SQLModel, Pydantic, structlog (005-mcp-todo-server)
+- Neon PostgreSQL (shared with Phase II, direct SQLModel access) (005-mcp-todo-server)
+- Python 3.13+ + openai (Python SDK), httpx, fastapi, sqlmodel, pydantic, structlog (006-openai-agent-mcp)
+- Neon PostgreSQL (shared with Part 1 - conversations, messages tables) (006-openai-agent-mcp)
+- TypeScript 5.x (strict mode) + React 18+, Next.js 16+, Tailwind CSS, framer-motion, react-markdown (007-chatkit-ui)
+- Backend (Part 2 agent manages via SQLModel) (007-chatkit-ui)
 
 ## Recent Changes
 - 002-phase2-todo-frontend: Added TypeScript 5.x (strict mode, no `any` types)
