@@ -25,6 +25,13 @@ from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from mcp_server.config import get_settings
+
+# Task T007: Import agent settings for health check
+try:
+    from agent.config import get_agent_settings
+    AGENT_AVAILABLE = True
+except ImportError:
+    AGENT_AVAILABLE = False
 from mcp_server.database import init_db, get_db
 from mcp_server.logging import configure_logging, get_logger, set_correlation_id
 from mcp_server.schemas import ToolCallRequest, ErrorCode
@@ -116,12 +123,24 @@ async def health_check() -> dict:
     """Health check endpoint.
 
     Returns server status for monitoring and load balancers.
+    Task T007: Includes agent status when agent module is available.
     """
-    return {
+    response = {
         "status": "healthy",
         "version": "0.1.0",
         "environment": settings.environment,
     }
+
+    # Task T007: Add agent status if agent module is available
+    if AGENT_AVAILABLE:
+        try:
+            agent_settings = get_agent_settings()
+            response["agent_status"] = "ready" if agent_settings.is_configured else "not_configured"
+            response["agent_model"] = agent_settings.agent_model
+        except Exception:
+            response["agent_status"] = "error"
+
+    return response
 
 
 @app.get("/mcp/tools")
@@ -177,13 +196,22 @@ async def call_mcp_tool(
         }
 
     except ValidationError as e:
-        # Pydantic validation error
+        # Pydantic validation error - convert to serializable format
+        errors = []
+        for err in e.errors():
+            error_info = {
+                "loc": err.get("loc", []),
+                "msg": err.get("msg", "Unknown error"),
+                "type": err.get("type", "unknown"),
+            }
+            errors.append(error_info)
+
         return {
             "status": "error",
             "error": {
                 "code": ErrorCode.VALIDATION_ERROR.value,
                 "message": "Invalid parameters",
-                "details": {"errors": e.errors()},
+                "details": {"errors": errors},
             },
         }
 
