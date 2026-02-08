@@ -27,6 +27,15 @@ from agent.tools import (
     get_openai_tools,
     MCPToolError,
 )
+from agent.conversation import (
+    get_or_create_conversation,
+    get_context_messages,
+    store_message,
+    update_conversation_activity,
+    get_user_conversations,
+    get_conversation_messages,
+)
+from agent.chat import process_chat
 
 __all__ = [
     # Configuration
@@ -44,6 +53,15 @@ __all__ = [
     "execute_mcp_tool",
     "get_openai_tools",
     "MCPToolError",
+    # Conversation
+    "get_or_create_conversation",
+    "get_context_messages",
+    "store_message",
+    "update_conversation_activity",
+    "get_user_conversations",
+    "get_conversation_messages",
+    # Chat
+    "process_chat",
 ]
 
 __version__ = "0.1.0"

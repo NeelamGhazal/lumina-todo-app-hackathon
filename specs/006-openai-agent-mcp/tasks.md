@@ -64,15 +64,15 @@
 
 **Objective**: Multi-turn conversations maintain context correctly
 
-- [ ] T014 Create `chatbot/agent/conversation.py` with `get_or_create_conversation(db, user_id)` function (30-min timeout per FR-043)
-- [ ] T015 Implement `get_context_messages(db, conversation_id, limit=10)` in `chatbot/agent/conversation.py` to retrieve last 10 messages
-- [ ] T016 Implement `store_message(db, conversation_id, role, content)` in `chatbot/agent/conversation.py` to persist user and assistant messages
-- [ ] T017 Implement `update_conversation_activity(db, conversation_id)` in `chatbot/agent/conversation.py` to update last_activity timestamp
-- [ ] T018 Create `chatbot/agent/chat.py` with main `process_chat(message, user_id, db)` orchestration function
-- [ ] T019 Implement tool execution loop in `chatbot/agent/chat.py` with max 5 rounds limit per request
-- [ ] T020 Add `/chat` POST endpoint to `chatbot/mcp_server/main.py` per contracts/agent-api.yaml
-- [ ] T021 Add `/conversations` GET endpoint to `chatbot/mcp_server/main.py` for listing user conversations
-- [ ] T022 Add `/conversations/{conversation_id}/messages` GET endpoint to `chatbot/mcp_server/main.py` for conversation history
+- [X] T014 Create `chatbot/agent/conversation.py` with `get_or_create_conversation(db, user_id)` function (30-min timeout per FR-043)
+- [X] T015 Implement `get_context_messages(db, conversation_id, limit=10)` in `chatbot/agent/conversation.py` to retrieve last 10 messages
+- [X] T016 Implement `store_message(db, conversation_id, role, content)` in `chatbot/agent/conversation.py` to persist user and assistant messages
+- [X] T017 Implement `update_conversation_activity(db, conversation_id)` in `chatbot/agent/conversation.py` to update last_activity timestamp
+- [X] T018 Create `chatbot/agent/chat.py` with main `process_chat(message, user_id, db)` orchestration function
+- [X] T019 Implement tool execution loop in `chatbot/agent/chat.py` with max 5 rounds limit per request
+- [X] T020 Add `/chat` POST endpoint to `chatbot/mcp_server/main.py` per contracts/agent-api.yaml
+- [X] T021 Add `/conversations` GET endpoint to `chatbot/mcp_server/main.py` for listing user conversations
+- [X] T022 Add `/conversations/{conversation_id}/messages` GET endpoint to `chatbot/mcp_server/main.py` for conversation history
 
 **Checkpoint 3**: Conversations persist, context maintained across turns, 30-min timeout works, all endpoints respond correctly
 

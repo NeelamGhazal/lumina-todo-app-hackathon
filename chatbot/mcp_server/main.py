@@ -28,13 +28,21 @@ from mcp_server.config import get_settings
 
 # Task T007: Import agent settings for health check
 # Task T013: Import agent initialization
+# Task T020-T022: Import agent chat and conversation functions
 try:
     from agent.config import get_agent_settings
     from agent.client import initialize_agent
+    from agent.chat import process_chat
+    from agent.schemas import ChatRequest
+    from agent.conversation import get_user_conversations, get_conversation_messages
     AGENT_AVAILABLE = True
 except ImportError:
     AGENT_AVAILABLE = False
     initialize_agent = None  # type: ignore
+    process_chat = None  # type: ignore
+    ChatRequest = None  # type: ignore
+    get_user_conversations = None  # type: ignore
+    get_conversation_messages = None  # type: ignore
 from mcp_server.database import init_db, get_db
 from mcp_server.logging import configure_logging, get_logger, set_correlation_id
 from mcp_server.schemas import ToolCallRequest, ErrorCode
@@ -249,6 +257,214 @@ async def call_mcp_tool(
                 "details": {"error": str(e)} if settings.is_development else None,
             },
         }
+
+
+# =============================================================================
+# Task T020-T022: Chat and Conversation Endpoints
+# =============================================================================
+
+
+@app.post("/chat")
+async def chat_endpoint(
+    request: ChatRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Send message to agent and get response.
+
+    Task T020: Main chat endpoint per contracts/agent-api.yaml.
+
+    Args:
+        request: Chat request with message, user_id, optional conversation_id
+        db: Database session (injected)
+
+    Returns:
+        ChatResponse with message, conversation_id, and optional tool_calls
+    """
+    if not AGENT_AVAILABLE or process_chat is None:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "AGENT_UNAVAILABLE",
+                "message": "Agent module is not available",
+            },
+        )
+
+    try:
+        response = await process_chat(
+            message=request.message,
+            user_id=request.user_id,
+            db=db,
+            conversation_id=request.conversation_id,
+        )
+        return response.model_dump(mode="json")
+
+    except Exception as e:
+        logger.error(
+            "chat_endpoint_failed",
+            error=str(e),
+            user_id=str(request.user_id),
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "CHAT_FAILED",
+                "message": "Failed to process chat message",
+                "details": {"error": str(e)} if settings.is_development else None,
+            },
+        )
+
+
+@app.get("/conversations")
+async def list_conversations(
+    user_id: str,
+    limit: int = 20,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """List user's conversations.
+
+    Task T021: List conversations endpoint per contracts/agent-api.yaml.
+
+    Args:
+        user_id: User's unique identifier (UUID string)
+        limit: Maximum conversations to return (1-100, default 20)
+        db: Database session (injected)
+
+    Returns:
+        List of conversation summaries
+    """
+    if not AGENT_AVAILABLE or get_user_conversations is None:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "AGENT_UNAVAILABLE",
+                "message": "Agent module is not available",
+            },
+        )
+
+    from uuid import UUID
+
+    try:
+        user_uuid = UUID(user_id)
+        limit = max(1, min(100, limit))
+
+        conversations = await get_user_conversations(db, user_uuid, limit)
+
+        # Convert UUIDs and datetimes to strings for JSON serialization
+        result = []
+        for conv in conversations:
+            result.append({
+                "id": str(conv["id"]),
+                "created_at": conv["created_at"].isoformat(),
+                "last_activity": conv["last_activity"].isoformat(),
+                "message_count": conv["message_count"],
+                "preview": conv["preview"],
+            })
+
+        return {"conversations": result}
+
+    except ValueError:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": "INVALID_USER_ID",
+                "message": "user_id must be a valid UUID",
+            },
+        )
+    except Exception as e:
+        logger.error(
+            "list_conversations_failed",
+            error=str(e),
+            user_id=user_id,
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "LIST_FAILED",
+                "message": "Failed to list conversations",
+            },
+        )
+
+
+@app.get("/conversations/{conversation_id}/messages")
+async def get_messages(
+    conversation_id: str,
+    user_id: str,
+    limit: int = 50,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Get messages in a conversation.
+
+    Task T022: Get conversation messages endpoint per contracts/agent-api.yaml.
+
+    Args:
+        conversation_id: Conversation UUID
+        user_id: User's unique identifier (for ownership verification)
+        limit: Maximum messages to return (1-200, default 50)
+        db: Database session (injected)
+
+    Returns:
+        List of messages or 404 if not found/unauthorized
+    """
+    if not AGENT_AVAILABLE or get_conversation_messages is None:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "AGENT_UNAVAILABLE",
+                "message": "Agent module is not available",
+            },
+        )
+
+    from uuid import UUID
+
+    try:
+        conv_uuid = UUID(conversation_id)
+        user_uuid = UUID(user_id)
+        limit = max(1, min(200, limit))
+
+        messages = await get_conversation_messages(db, conv_uuid, user_uuid, limit)
+
+        if messages is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": "NOT_FOUND",
+                    "message": "Conversation not found or you don't have access",
+                },
+            )
+
+        # Convert UUIDs and datetimes to strings for JSON serialization
+        result = []
+        for msg in messages:
+            result.append({
+                "id": str(msg["id"]),
+                "role": msg["role"],
+                "content": msg["content"],
+                "created_at": msg["created_at"].isoformat(),
+            })
+
+        return {"messages": result}
+
+    except ValueError:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": "INVALID_UUID",
+                "message": "conversation_id and user_id must be valid UUIDs",
+            },
+        )
+    except Exception as e:
+        logger.error(
+            "get_messages_failed",
+            error=str(e),
+            conversation_id=conversation_id,
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "GET_FAILED",
+                "message": "Failed to get messages",
+            },
+        )
 
 
 @app.exception_handler(Exception)
