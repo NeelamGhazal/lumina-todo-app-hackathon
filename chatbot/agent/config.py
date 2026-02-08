@@ -40,6 +40,9 @@ class AgentSettings(BaseSettings):
     # Tool Loop Configuration (per plan.md risk mitigation)
     max_tool_rounds: int = 5
 
+    # Session Configuration (per FR-043)
+    session_timeout_minutes: int = 30
+
     @property
     def openrouter_base_url(self) -> str:
         """OpenRouter API base URL."""

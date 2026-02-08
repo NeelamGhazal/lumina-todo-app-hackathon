@@ -86,24 +86,24 @@
 
 ### Unit Tests
 
-- [ ] T023 [P] Create `chatbot/tests/test_agent_config.py` with tests for config loading and agent instructions
-- [ ] T024 [P] Create `chatbot/tests/test_agent_client.py` with tests for OpenRouter client initialization and message sending (mock API)
-- [ ] T025 [P] Create `chatbot/tests/test_agent_tools.py` with tests for schema conversion and tool execution (mock MCP server)
-- [ ] T026 [P] Create `chatbot/tests/test_agent_conversation.py` with tests for session management, timeout logic, and message storage
-- [ ] T027 [P] Create `chatbot/tests/test_agent_chat.py` with tests for chat orchestration, tool loop, and response formatting
+- [X] T023 [P] Create `chatbot/tests/test_agent_config.py` with tests for config loading and agent instructions
+- [X] T024 [P] Create `chatbot/tests/test_agent_client.py` with tests for OpenRouter client initialization and message sending (mock API)
+- [X] T025 [P] Create `chatbot/tests/test_agent_tools.py` with tests for schema conversion and tool execution (mock MCP server)
+- [X] T026 [P] Create `chatbot/tests/test_agent_conversation.py` with tests for session management, timeout logic, and message storage
+- [X] T027 [P] Create `chatbot/tests/test_agent_chat.py` with tests for chat orchestration, tool loop, and response formatting
 
 ### Integration Tests
 
-- [ ] T028 [US1] Create `chatbot/tests/test_chat_add_task.py` with integration tests for adding tasks via natural language
-- [ ] T029 [US2] Create `chatbot/tests/test_chat_list_tasks.py` with integration tests for listing tasks via natural language
-- [ ] T030 [US3] [US4] Create `chatbot/tests/test_chat_complete_delete.py` with integration tests for completing and deleting tasks
-- [ ] T031 [US5] Create `chatbot/tests/test_chat_update_task.py` with integration tests for updating tasks via natural language
-- [ ] T032 [US6] Create `chatbot/tests/test_chat_multi_turn.py` with integration tests for multi-turn conversations with context
+- [X] T028 [US1] Create `chatbot/tests/test_chat_add_task.py` with integration tests for adding tasks via natural language
+- [X] T029 [US2] Create `chatbot/tests/test_chat_list_tasks.py` with integration tests for listing tasks via natural language
+- [X] T030 [US3] [US4] Create `chatbot/tests/test_chat_complete_delete.py` with integration tests for completing and deleting tasks
+- [X] T031 [US5] Create `chatbot/tests/test_chat_update_task.py` with integration tests for updating tasks via natural language
+- [X] T032 [US6] Create `chatbot/tests/test_chat_multi_turn.py` with integration tests for multi-turn conversations with context
 
 ### Documentation
 
-- [ ] T033 Update `chatbot/README.md` with agent setup instructions, environment variables, and example conversations
-- [ ] T034 Run full test suite with coverage: `uv run pytest --cov=mcp_server --cov=agent --cov-report=term-missing` and verify 80%+ coverage
+- [X] T033 Update `chatbot/README.md` with agent setup instructions, environment variables, and example conversations
+- [X] T034 Run full test suite with coverage: `uv run pytest --cov=mcp_server --cov=agent --cov-report=term-missing` and verify 80%+ coverage
 
 **Checkpoint 4**: All tests passing, 80%+ coverage, README complete, ready for Part 3 (ChatKit UI)
 
