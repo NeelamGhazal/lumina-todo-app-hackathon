@@ -20,10 +20,21 @@ from mcp_server.config import get_settings
 settings = get_settings()
 
 # Create async engine with resolved database URL
+# Use connect_args for SQLite to enable WAL mode and set timeout
+connect_args = {}
+if "sqlite" in settings.database_url_resolved:
+    # WAL mode allows concurrent readers with one writer
+    # Timeout prevents "database is locked" errors
+    connect_args = {
+        "check_same_thread": False,
+        "timeout": 30,
+    }
+
 engine = create_async_engine(
     settings.database_url_resolved,
     echo=settings.is_development,
     future=True,
+    connect_args=connect_args,
 )
 
 # Session factory for dependency injection
@@ -39,9 +50,16 @@ async def init_db() -> None:
 
     Creates all tables defined in SQLModel metadata.
     Safe to call multiple times (uses CREATE IF NOT EXISTS).
+    Also enables WAL mode for SQLite to improve concurrency.
     """
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
+
+        # Enable WAL mode for SQLite to allow concurrent access
+        if "sqlite" in settings.database_url_resolved:
+            from sqlalchemy import text
+            await conn.execute(text("PRAGMA journal_mode=WAL"))
+            await conn.execute(text("PRAGMA busy_timeout=30000"))
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:

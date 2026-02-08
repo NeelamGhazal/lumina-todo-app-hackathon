@@ -66,10 +66,14 @@ async def process_chat(
     # Step 2: Store user message
     await store_message(db, conversation.id, "user", message)
 
-    # Step 3: Build context messages
+    # Step 3: Commit user message BEFORE running agent
+    # This releases the database lock so MCP tools can write
+    await db.commit()
+
+    # Step 4: Build context messages
     context = await get_context_messages(db, conversation.id)
 
-    # Step 4: Run agent with OpenAI Agents SDK
+    # Step 5: Run agent with OpenAI Agents SDK
     tool_calls_summary: list[ToolCallSummary] = []
     response_content: str
 
@@ -108,13 +112,13 @@ async def process_chat(
         )
         response_content = "I'm sorry, I encountered an error processing your request. Please try again."
 
-    # Step 5: Store assistant response
+    # Step 6: Store assistant response
     await store_message(db, conversation.id, "assistant", response_content)
 
-    # Step 6: Update conversation activity
+    # Step 7: Update conversation activity
     await update_conversation_activity(db, conversation.id)
 
-    # Step 7: Commit transaction
+    # Step 8: Commit remaining changes
     await db.commit()
 
     logger.info(

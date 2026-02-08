@@ -94,6 +94,11 @@ async def add_task(
     context = _get_current_context()
     user_id = context.get("user_id")
 
+    logger.debug(
+        "add_task_context_retrieved",
+        user_id=user_id,
+    )
+
     if not user_id:
         return json.dumps({"error": "No user context available"})
 
