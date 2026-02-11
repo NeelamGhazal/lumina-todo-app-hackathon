@@ -426,58 +426,142 @@ html {
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
 }
 
-/* Add Task Modal - LIGHT THEME */
-.modal-content-bg {
-  background-color: #d1c3e9 !important;
-}
-
-.modal-content-bg,
-.modal-content-bg * {
-  color: #1a0033 !important;
-}
-
-.modal-content-bg input,
-.modal-content-bg textarea,
-.modal-content-bg select,
-.modal-content-bg [role="combobox"],
-.modal-content-bg [role="listbox"],
-.modal-content-bg [role="option"] {
-  background-color: #ede7f6 !important;
-  border: 1px solid #4a148c !important;
-  color: #1a0033 !important;
-}
-
-.modal-content-bg input::placeholder,
-.modal-content-bg textarea::placeholder {
-  color: #5e35b1 !important;
-  opacity: 0.8 !important;
-}
-
-/* Add Task Modal - DARK THEME */
+/* Add Task Modal - DARK THEME (matching screenshot) - MUST COME FIRST */
+html.dark .modal-content-bg,
 .dark .modal-content-bg {
-  background-color: #4e2f83 !important;
+  background: #3d2a5e !important;
+  border: 1px solid #5a4a7a !important;
 }
 
-.dark .modal-content-bg,
+html.dark .modal-content-bg *,
 .dark .modal-content-bg * {
-  color: #f3e5f5 !important;
+  color: #e5d4f5 !important;
 }
 
+html.dark .modal-content-bg input,
+html.dark .modal-content-bg textarea,
+html.dark .modal-content-bg select,
+html.dark .modal-content-bg [role="combobox"],
 .dark .modal-content-bg input,
 .dark .modal-content-bg textarea,
 .dark .modal-content-bg select,
-.dark .modal-content-bg [role="combobox"],
-.dark .modal-content-bg [role="listbox"],
-.dark .modal-content-bg [role="option"] {
-  background-color: #38206a !important;
-  border: 1px solid #ce93d8 !important;
-  color: #f3e5f5 !important;
+.dark .modal-content-bg [role="combobox"] {
+  background: #352952 !important;
+  border: 1px solid #5a4a7a !important;
+  color: #e5d4f5 !important;
 }
 
+html.dark .modal-content-bg input::placeholder,
+html.dark .modal-content-bg textarea::placeholder,
 .dark .modal-content-bg input::placeholder,
 .dark .modal-content-bg textarea::placeholder {
-  color: #ce93d8 !important;
-  opacity: 0.8 !important;
+  color: #9d8bb5 !important;
+}
+
+html.dark .modal-content-bg label,
+.dark .modal-content-bg label {
+  color: #e5d4f5 !important;
+}
+
+html.dark .modal-content-bg button,
+.dark .modal-content-bg button {
+  background: #352952 !important;
+  border-color: #5a4a7a !important;
+  color: #e5d4f5 !important;
+}
+
+/* Add Task Modal - LIGHT THEME (only when NOT dark) */
+html:not(.dark) .modal-content-bg {
+  background: linear-gradient(135deg, #f5f0fa 0%, #ede7f6 100%) !important;
+  border: 1px solid #d1c4e9 !important;
+}
+
+html:not(.dark) .modal-content-bg * {
+  color: #4a148c !important;
+}
+
+/* Modal title - ensure "Create Task" is visible - LIGHT ONLY */
+html:not(.dark) .modal-content-bg h2,
+html:not(.dark) .modal-content-bg [role="heading"] {
+  color: #4a148c !important;
+}
+
+html:not(.dark) .modal-content-bg input,
+html:not(.dark) .modal-content-bg textarea,
+html:not(.dark) .modal-content-bg select,
+html:not(.dark) .modal-content-bg [role="combobox"] {
+  background: #ffffff !important;
+  border: 1px solid #d1c4e9 !important;
+  color: #4a148c !important;
+}
+
+html:not(.dark) .modal-content-bg input::placeholder,
+html:not(.dark) .modal-content-bg textarea::placeholder {
+  color: #9575cd !important;
+}
+
+/* Modal light input class - forces white background in light theme */
+/* Browser-safe: data-theme + class detection + double [class] for Chrome specificity */
+[data-theme="light"] .modal-light-input,
+:root:not([data-theme="dark"]) .modal-light-input,
+html:not(.dark) .modal-light-input[class][class],
+html:not(.dark) input.modal-light-input,
+html:not(.dark) textarea.modal-light-input {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border: 1px solid #d1c4e9 !important;
+  color: #4a148c !important;
+}
+
+[data-theme="light"] .modal-light-input::placeholder,
+:root:not([data-theme="dark"]) .modal-light-input::placeholder,
+html:not(.dark) .modal-light-input[class][class]::placeholder,
+html:not(.dark) input.modal-light-input::placeholder,
+html:not(.dark) textarea.modal-light-input::placeholder {
+  color: #9575cd !important;
+}
+
+/* Modal buttons - LIGHT THEME */
+html:not(.dark) .modal-content-bg button[type="button"]:not([data-gradient]) {
+  background: #ffffff !important;
+  border-color: #d1c4e9 !important;
+  color: #4a148c !important;
+}
+
+/* Create Task submit button - ensure text is visible LIGHT THEME */
+html:not(.dark) .modal-content-bg button[type="submit"],
+html:not(.dark) button[type="submit"][class*="gradient"],
+[data-theme="light"] button[type="submit"][class*="gradient"] {
+  color: #ffffff !important;
+}
+
+/* Modal labels - LIGHT THEME */
+html:not(.dark) .modal-content-bg label {
+  color: #4a148c !important;
+}
+
+/* Priority buttons - remove ALL square backgrounds in BOTH themes */
+.modal-content-bg [role="radiogroup"] button {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.modal-content-bg [role="radiogroup"] button span {
+  background: transparent !important;
+  border: none !important;
+}
+
+html.dark .modal-content-bg [role="radiogroup"] button,
+.dark .modal-content-bg [role="radiogroup"] button {
+  background: transparent !important;
+  border: none !important;
+}
+
+html.dark .modal-content-bg [role="radiogroup"] button span,
+.dark .modal-content-bg [role="radiogroup"] button span {
+  background: transparent !important;
+  border: none !important;
 }
 
 /* Backdrop-filter fallback for unsupported browsers */
@@ -830,7 +914,7 @@ a.hover\:bg-lumina-primary-600:hover,
   color: #f3e5f5 !important;
 }
 
-/* Tags input box - no border, proper padding */
+/* Tags input box - LIGHT THEME: transparent container */
 .tags-input-box {
   background-color: transparent !important;
   border: none !important;
@@ -838,22 +922,38 @@ a.hover\:bg-lumina-primary-600:hover,
   box-shadow: none !important;
 }
 
-.tags-input-box input,
+/* Tags input field - LIGHT THEME: white background with outline */
 .tags-input-field {
-  background-color: transparent !important;
-  border: none !important;
+  background-color: #ffffff !important;
+  border: 1px solid #d1c4e9 !important;
+  color: #4a148c !important;
   outline: none !important;
   box-shadow: none !important;
   padding: 8px 12px !important;
   min-height: 36px !important;
 }
 
+.tags-input-field::placeholder {
+  color: #9575cd !important;
+}
+
+/* Tags input field - DARK THEME: transparent */
+.dark .tags-input-field,
+html.dark .tags-input-field {
+  background-color: transparent !important;
+  border: none !important;
+  color: #f3e5f5 !important;
+}
+
+.dark .tags-input-field::placeholder,
+html.dark .tags-input-field::placeholder {
+  color: #9d8bb5 !important;
+}
+
 .tags-input-field:focus,
 .tags-input-field:focus-visible {
   outline: none !important;
-  border: none !important;
   box-shadow: none !important;
-  ring: none !important;
 }
 
 /* Avatar circle - LIGHT THEME: dark background, light text */
@@ -874,23 +974,29 @@ a.hover\:bg-lumina-primary-600:hover,
   color: #ffffff !important;
 }
 
-/* Calendar Popover - LIGHT THEME: light bg, dark text */
+/* Calendar Popover - LIGHT THEME (ChatKit matching) */
 .calendar-popover {
-  background-color: #ffffff !important;
-  color: #1a1a1a !important;
+  background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%) !important;
+  border: 1px solid #ce93d8 !important;
+  color: #4a148c !important;
 }
 
 .calendar-popover * {
-  color: #1a1a1a;
+  color: #4a148c;
 }
 
 .calendar-popover button {
-  color: #1a1a1a !important;
+  color: #4a148c !important;
 }
 
-/* Calendar Popover - DARK THEME: dark bg, light text */
+.calendar-popover button:hover {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Calendar Popover - DARK THEME */
 .dark .calendar-popover {
-  background-color: #1e1e2e !important;
+  background: linear-gradient(135deg, #1a0033 0%, #2e003e 100%) !important;
+  border: 1px solid rgba(179, 157, 219, 0.3) !important;
   color: #f3e5f5 !important;
 }
 
@@ -902,19 +1008,29 @@ a.hover\:bg-lumina-primary-600:hover,
   color: #f3e5f5 !important;
 }
 
-/* Select Dropdown - LIGHT THEME: light bg, dark text */
+.dark .calendar-popover button:hover {
+  background-color: rgba(126, 87, 194, 0.3) !important;
+}
+
+/* Select Dropdown - LIGHT THEME (ChatKit matching) */
 .select-dropdown-content {
-  background-color: #ffffff !important;
-  color: #1a1a1a !important;
+  background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%) !important;
+  border: 1px solid #ce93d8 !important;
+  color: #4a148c !important;
 }
 
 .select-dropdown-content * {
-  color: #1a1a1a !important;
+  color: #4a148c !important;
 }
 
-/* Select Dropdown - DARK THEME: dark bg, light text */
+.select-dropdown-content [data-highlighted] {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Select Dropdown - DARK THEME */
 .dark .select-dropdown-content {
-  background-color: #1e1e2e !important;
+  background: linear-gradient(135deg, #1a0033 0%, #2e003e 100%) !important;
+  border: 1px solid rgba(179, 157, 219, 0.3) !important;
   color: #f3e5f5 !important;
 }
 
@@ -982,6 +1098,177 @@ a.hover\:bg-lumina-primary-600:hover,
   color: #ce93d8 !important;
 }
 
+/* ==========================================
+   CHATKIT FLOATING WIDGET - THEME-AWARE
+   Light: soft pastel lavender (matching website)
+   Dark: deep purple bg, light text
+   ========================================== */
+
+/* Chat widget container - LIGHT THEME (soft pastel gradient) */
+.chat-widget-container {
+  background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%) !important;
+}
+
+/* Chat widget container - DARK THEME */
+.dark .chat-widget-container {
+  background: linear-gradient(135deg, #1a0033 0%, #2e003e 50%, #120024 100%) !important;
+}
+
+/* Chat widget panel border - LIGHT THEME */
+.chat-widget-panel {
+  border-color: #d1c4e9 !important;
+  background-color: transparent !important;
+}
+
+/* Chat widget panel border - DARK THEME */
+.dark .chat-widget-panel {
+  border-color: rgba(126, 87, 194, 0.3) !important;
+  background-color: transparent !important;
+}
+
+/* Chat header - LIGHT THEME */
+.chat-header-text {
+  color: #4a148c !important;
+}
+
+.chat-header-subtext {
+  color: #7e57c2 !important;
+}
+
+/* Chat header - DARK THEME */
+.dark .chat-header-text {
+  color: #ffffff !important;
+}
+
+.dark .chat-header-subtext {
+  color: rgba(206, 147, 216, 0.7) !important;
+}
+
+/* Chat empty state - LIGHT THEME */
+.chat-empty-title {
+  color: #4a148c !important;
+}
+
+.chat-empty-text {
+  color: #7e57c2 !important;
+}
+
+.chat-empty-icon {
+  color: #9575cd !important;
+}
+
+/* Chat empty state - DARK THEME */
+.dark .chat-empty-title {
+  color: #ffffff !important;
+}
+
+.dark .chat-empty-text {
+  color: rgba(206, 147, 216, 0.7) !important;
+}
+
+.dark .chat-empty-icon {
+  color: #ce93d8 !important;
+}
+
+/* Quick prompt buttons - LIGHT THEME (soft pastel) */
+.chat-quick-prompt {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  border-color: #ce93d8 !important;
+  color: #5e35b1 !important;
+}
+
+.chat-quick-prompt:hover {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-color: #ba68c8 !important;
+}
+
+/* Quick prompt buttons - DARK THEME */
+.dark .chat-quick-prompt {
+  background-color: rgba(126, 87, 194, 0.2) !important;
+  border-color: rgba(126, 87, 194, 0.3) !important;
+  color: #e1bee7 !important;
+}
+
+.dark .chat-quick-prompt:hover {
+  background-color: rgba(126, 87, 194, 0.3) !important;
+}
+
+/* Chat input - LIGHT THEME (soft pastel) */
+.chat-input {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-color: #ce93d8 !important;
+  color: #4a148c !important;
+}
+
+.chat-input::placeholder {
+  color: #9575cd !important;
+}
+
+/* Chat input - DARK THEME */
+.dark .chat-input {
+  background-color: rgba(126, 87, 194, 0.15) !important;
+  border-color: rgba(126, 87, 194, 0.3) !important;
+  color: #ffffff !important;
+}
+
+.dark .chat-input::placeholder {
+  color: rgba(206, 147, 216, 0.5) !important;
+}
+
+/* User message bubble - LIGHT THEME (soft purple gradient) */
+.chat-message-user {
+  background: linear-gradient(135deg, #9575cd 0%, #7e57c2 100%) !important;
+  color: #ffffff !important;
+}
+
+/* User message bubble - DARK THEME */
+.dark .chat-message-user {
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%) !important;
+  color: #ffffff !important;
+}
+
+/* AI message bubble - LIGHT THEME (soft lavender) */
+.chat-message-ai {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid #ce93d8 !important;
+  color: #4a148c !important;
+}
+
+/* AI message bubble - DARK THEME */
+.dark .chat-message-ai {
+  background-color: rgba(126, 87, 194, 0.2) !important;
+  border: 1px solid rgba(126, 87, 194, 0.3) !important;
+  color: #ffffff !important;
+}
+
+/* Chat loading text - LIGHT THEME */
+.chat-loading-text {
+  color: #7e57c2 !important;
+}
+
+/* Chat loading text - DARK THEME */
+.dark .chat-loading-text {
+  color: #ce93d8 !important;
+}
+
+/* Chat tool calls - LIGHT THEME */
+.chat-tool-text {
+  color: #5e35b1 !important;
+}
+
+.chat-tool-border {
+  border-color: #e1bee7 !important;
+}
+
+/* Chat tool calls - DARK THEME */
+.dark .chat-tool-text {
+  color: #ce93d8 !important;
+}
+
+.dark .chat-tool-border {
+  border-color: rgba(126, 87, 194, 0.3) !important;
+}
+
 /* Calendar - react-day-picker v9 */
 /* RDP v9 uses flex layout, ensure proper spacing */
 .rdp-root {
@@ -1008,4 +1295,22 @@ a.hover\:bg-lumina-primary-600:hover,
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+}
+
+/* ==========================================
+   MODAL INPUT WHITE BACKGROUND - HIGHEST PRIORITY
+   Browser-safe with data-theme + [class][class] for Chrome
+   ========================================== */
+[data-theme="light"] .modal-light-input[class][class],
+html:not(.dark) .modal-light-input[class][class] {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border: 1px solid #d1c4e9 !important;
+  border-color: #d1c4e9 !important;
+  color: #4a148c !important;
+}
+
+[data-theme="light"] .modal-light-input[class][class]::placeholder,
+html:not(.dark) .modal-light-input[class][class]::placeholder {
+  color: #9575cd !important;
 }

@@ -5,7 +5,6 @@ import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
-
 import { cn } from "@/lib/utils";
 import { taskSchema, type TaskFormData } from "@/lib/validations";
 import { Button } from "@/components/ui/button";
@@ -102,6 +101,7 @@ export function TaskForm({
           disabled={isSubmitting}
           aria-invalid={!!errors.title}
           aria-describedby={errors.title ? "title-error" : undefined}
+          className="modal-light-input dark:!bg-[#2d1d4a] dark:!border-[#5a4a7a] dark:!text-[#f3e5f5] dark:placeholder:!text-[#9d8bb5]"
           {...register("title")}
         />
         {errors.title && (
@@ -126,6 +126,7 @@ export function TaskForm({
           disabled={isSubmitting}
           aria-invalid={!!errors.description}
           aria-describedby={errors.description ? "description-error" : undefined}
+          className="modal-light-input dark:!bg-[#2d1d4a] dark:!border-[#5a4a7a] dark:!text-[#f3e5f5] dark:placeholder:!text-[#9d8bb5]"
           {...register("description")}
         />
         {errors.description && (
@@ -242,7 +243,7 @@ export function TaskForm({
               id="dueTime"
               type="time"
               disabled={isSubmitting}
-              className="pl-10"
+              className="pl-10 dark:!bg-[#2d1d4a] dark:!border-[#5a4a7a] dark:!text-[#f3e5f5]"
               aria-invalid={!!errors.dueTime}
               {...register("dueTime")}
             />

@@ -70,54 +70,85 @@ def _configure_openrouter_client() -> None:
 async def add_task(
     title: str,
     description: str = "",
-    priority: str = "medium",
-    category: str = "personal",
+    priority: str = "",
+    category: str = "",
     tags: str = "",
     due_date: str = "",
     due_time: str = "",
 ) -> str:
-    """Create a new task for the user.
+    """Create exactly ONE new task. Call this only ONCE per user request.
+
+    STRICT RULES:
+    - Only include fields the user explicitly mentioned
+    - Do NOT put priority/date/time/tags into description
+    - Each field has its own parameter
 
     Args:
-        title: The task title (required)
-        description: Optional task description
-        priority: Task priority - "high", "medium", or "low" (default: medium)
-        category: Task category - "work", "personal", "shopping", "health", "other" (default: personal)
-        tags: Comma-separated list of tags (e.g., "urgent,meeting")
-        due_date: Due date in YYYY-MM-DD format (e.g., "2024-12-31")
-        due_time: Due time in HH:MM format, 24-hour (e.g., "14:30")
+        title: The task title/name (required)
+        description: Descriptive text ONLY - never include priority/date/time/tags here
+        priority: Must be exactly "high", "medium", or "low" if user specified
+        category: Must be "work", "personal", "shopping", "health", or "other"
+        tags: Comma-separated tags if user specified any
+        due_date: YYYY-MM-DD format only
+        due_time: HH:MM 24-hour format only
 
     Returns:
         JSON string with task creation result
     """
-    # Note: user_id is injected from context during execution
     context = _get_current_context()
     user_id = context.get("user_id")
-
-    logger.debug(
-        "add_task_context_retrieved",
-        user_id=user_id,
-    )
 
     if not user_id:
         return json.dumps({"error": "No user context available"})
 
-    try:
-        # Build parameters
-        params: dict[str, Any] = {"title": title}
+    # Validate title
+    if not title or not title.strip():
+        return json.dumps({"error": "Task title is required"})
 
-        if description:
-            params["description"] = description
-        if priority and priority in ("high", "medium", "low"):
-            params["priority"] = priority
-        if category and category in ("work", "personal", "shopping", "health", "other"):
-            params["category"] = category
-        if tags:
+    try:
+        # Build parameters - ONLY include explicitly provided fields
+        params: dict[str, Any] = {"title": title.strip()}
+
+        # Description - only if provided and not empty
+        if description and description.strip():
+            params["description"] = description.strip()
+
+        # Priority - validate strictly
+        if priority and priority.strip():
+            p = priority.strip().lower()
+            if p in ("high", "medium", "low"):
+                params["priority"] = p
+            else:
+                return json.dumps({"error": f"Invalid priority '{priority}'. Must be high, medium, or low."})
+
+        # Category - validate strictly
+        if category and category.strip():
+            c = category.strip().lower()
+            if c in ("work", "personal", "shopping", "health", "other"):
+                params["category"] = c
+            else:
+                return json.dumps({"error": f"Invalid category '{category}'. Must be work, personal, shopping, health, or other."})
+
+        # Tags - parse comma-separated
+        if tags and tags.strip():
             params["tags"] = [t.strip() for t in tags.split(",") if t.strip()]
-        if due_date:
-            params["due_date"] = due_date
-        if due_time:
-            params["due_time"] = due_time
+
+        # Due date - validate format
+        if due_date and due_date.strip():
+            d = due_date.strip()
+            # Basic format check
+            if len(d) == 10 and d[4] == '-' and d[7] == '-':
+                params["due_date"] = d
+            else:
+                return json.dumps({"error": f"Invalid date format '{due_date}'. Use YYYY-MM-DD."})
+
+        # Due time - validate format
+        if due_time and due_time.strip():
+            t = due_time.strip()
+            if len(t) == 5 and t[2] == ':':
+                params["due_time"] = t
+            else:
+                return json.dumps({"error": f"Invalid time format '{due_time}'. Use HH:MM."})
 
         result = await execute_mcp_tool("add_task", params, UUID(user_id))
         return json.dumps(result)
@@ -207,13 +238,39 @@ async def delete_task(task_id: str) -> str:
 
 
 @function_tool
-async def update_task(task_id: str, title: str = "", description: str = "") -> str:
-    """Update a task's title or description.
+async def update_task(
+    task_id: str,
+    title: str = "",
+    description: str = "",
+    priority: str = "",
+    category: str = "",
+    tags: str = "",
+    due_date: str = "",
+    due_time: str = "",
+    clear_due_date: bool = False,
+    clear_due_time: bool = False,
+    clear_description: bool = False,
+) -> str:
+    """Update specific fields of a task. ONLY updates fields that are explicitly provided.
+
+    STRICT RULES:
+    - Only pass fields the user explicitly mentioned
+    - Do NOT infer or guess missing fields
+    - Do NOT put priority/date/time/tags into description
+    - Each field maps to its exact database column
 
     Args:
-        task_id: The UUID of the task to update
-        title: New title (optional)
-        description: New description (optional)
+        task_id: The UUID of the task to update (required)
+        title: New title - only if user wants to change the title
+        description: New description text - only if user wants to change description
+        priority: New priority "high", "medium", or "low" - only if user specifies
+        category: New category "work", "personal", "shopping", "health", "other"
+        tags: Comma-separated new tags - replaces existing tags
+        due_date: New due date in YYYY-MM-DD format
+        due_time: New due time in HH:MM format (24-hour)
+        clear_due_date: Set True to remove the due date
+        clear_due_time: Set True to remove the due time
+        clear_description: Set True to remove the description
 
     Returns:
         JSON string with update result
@@ -224,12 +281,45 @@ async def update_task(task_id: str, title: str = "", description: str = "") -> s
     if not user_id:
         return json.dumps({"error": "No user context available"})
 
-    # Build arguments with only provided fields
+    # STRICT: Only include fields that were explicitly provided
     args: dict[str, Any] = {"task_id": task_id}
-    if title:
-        args["title"] = title
-    if description:
-        args["description"] = description
+
+    # Only add fields if they have actual values
+    if title and title.strip():
+        args["title"] = title.strip()
+
+    if description and description.strip():
+        args["description"] = description.strip()
+
+    if priority and priority.strip().lower() in ("high", "medium", "low"):
+        args["priority"] = priority.strip().lower()
+
+    if category and category.strip().lower() in ("work", "personal", "shopping", "health", "other"):
+        args["category"] = category.strip().lower()
+
+    if tags and tags.strip():
+        args["tags"] = [t.strip() for t in tags.split(",") if t.strip()]
+
+    if due_date and due_date.strip():
+        args["due_date"] = due_date.strip()
+
+    if due_time and due_time.strip():
+        args["due_time"] = due_time.strip()
+
+    # Clear flags
+    if clear_due_date:
+        args["clear_due_date"] = True
+
+    if clear_due_time:
+        args["clear_due_time"] = True
+
+    if clear_description:
+        args["clear_description"] = True
+
+    # Validate that at least one update field is provided
+    update_fields = [k for k in args.keys() if k != "task_id"]
+    if not update_fields:
+        return json.dumps({"error": "No fields to update. Please specify what you want to change."})
 
     try:
         result = await execute_mcp_tool("update_task", args, UUID(user_id))

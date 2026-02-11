@@ -15,7 +15,7 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider
-      attribute="class"
+      attribute={["class", "data-theme"]}
       defaultTheme="dark"
       enableSystem={false}
       disableTransitionOnChange={false}

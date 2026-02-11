@@ -126,15 +126,15 @@ export function ChatUI() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-[#1a0033] via-[#2e003e] to-[#120024]">
+    <div className="flex flex-col h-full chat-widget-container">
       {/* Header */}
-      <div className="flex items-center gap-3 px-6 py-4 border-b border-purple-900/30">
+      <div className="flex items-center gap-3 px-6 py-4 border-b border-purple-200 dark:border-purple-900/30">
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
           <Sparkles className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h1 className="text-lg font-semibold text-white">Todo Assistant</h1>
-          <p className="text-xs text-purple-300/70">AI-powered task management</p>
+          <h1 className="text-lg font-semibold chat-header-text">Todo Assistant</h1>
+          <p className="text-xs chat-header-subtext">AI-powered task management</p>
         </div>
       </div>
 
@@ -143,12 +143,12 @@ export function ChatUI() {
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mb-4">
-              <Bot className="w-8 h-8 text-purple-400" />
+              <Bot className="w-8 h-8 chat-empty-icon" />
             </div>
-            <h2 className="text-xl font-semibold text-white mb-2">
+            <h2 className="text-xl font-semibold chat-empty-title mb-2">
               Welcome to Todo Assistant!
             </h2>
-            <p className="text-purple-300/70 mb-6 max-w-md">
+            <p className="chat-empty-text mb-6 max-w-md">
               I can help you manage your tasks. Try asking me to add, list, or complete tasks.
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
@@ -156,7 +156,7 @@ export function ChatUI() {
                 <button
                   key={qp.label}
                   onClick={() => handleQuickPrompt(qp.prompt)}
-                  className="px-4 py-2 rounded-full bg-purple-900/30 hover:bg-purple-800/40 text-purple-200 text-sm transition-colors border border-purple-700/30"
+                  className="px-4 py-2 rounded-full chat-quick-prompt text-sm transition-colors border"
                 >
                   {qp.label}
                 </button>
@@ -183,12 +183,12 @@ export function ChatUI() {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type a message..."
             disabled={isLoading}
-            className="w-full px-5 py-4 pr-14 rounded-2xl bg-purple-900/20 border border-purple-700/30 text-white placeholder-purple-400/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent disabled:opacity-50"
+            className="w-full px-5 py-4 pr-14 rounded-2xl chat-input border focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent disabled:opacity-50"
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed hover:from-purple-600 hover:to-pink-600 transition-all"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-gradient-to-r from-purple-600 to-purple-800 dark:from-purple-500 dark:to-pink-500 flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed hover:from-purple-700 hover:to-purple-900 dark:hover:from-purple-600 dark:hover:to-pink-600 transition-all"
           >
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -210,7 +210,7 @@ function MessageBubble({ message }: { message: Message }) {
       <div
         className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${
           isUser
-            ? "bg-gradient-to-br from-blue-500 to-cyan-500"
+            ? "bg-gradient-to-br from-purple-600 to-purple-800 dark:from-blue-500 dark:to-cyan-500"
             : "bg-gradient-to-br from-purple-500 to-pink-500"
         }`}
       >
@@ -223,41 +223,41 @@ function MessageBubble({ message }: { message: Message }) {
       <div
         className={`max-w-[75%] rounded-2xl px-4 py-3 ${
           isUser
-            ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
-            : "bg-purple-900/30 border border-purple-700/30 text-white"
+            ? "chat-message-user"
+            : "chat-message-ai"
         }`}
       >
         {message.isLoading ? (
           <div className="flex items-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
-            <span className="text-purple-300">Thinking...</span>
+            <Loader2 className="w-4 h-4 animate-spin chat-loading-text" />
+            <span className="chat-loading-text">Thinking...</span>
           </div>
         ) : (
           <>
             <p className="whitespace-pre-wrap">{message.content}</p>
             {message.error && (
-              <div className="mt-2 flex items-center gap-2 text-red-400 text-sm">
+              <div className="mt-2 flex items-center gap-2 text-red-500 dark:text-red-400 text-sm">
                 <AlertCircle className="w-4 h-4" />
                 <span>{message.error}</span>
               </div>
             )}
             {message.toolCalls && message.toolCalls.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-purple-700/30">
-                <p className="text-xs text-purple-400 mb-2">Actions performed:</p>
+              <div className="mt-3 pt-3 border-t chat-tool-border">
+                <p className="text-xs chat-tool-text mb-2">Actions performed:</p>
                 <div className="space-y-1">
                   {message.toolCalls.map((tc, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-2 text-sm text-purple-300"
+                      className="flex items-center gap-2 text-sm chat-tool-text"
                     >
                       {tc.success ? (
-                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400" />
                       ) : (
-                        <AlertCircle className="w-4 h-4 text-red-400" />
+                        <AlertCircle className="w-4 h-4 text-red-500 dark:text-red-400" />
                       )}
                       <span>{tc.tool}</span>
                       {tc.result_preview && (
-                        <span className="text-purple-400/70 truncate max-w-[150px]">
+                        <span className="opacity-70 truncate max-w-[150px]">
                           - {tc.result_preview}
                         </span>
                       )}

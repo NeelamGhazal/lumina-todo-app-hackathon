@@ -4,6 +4,9 @@
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/frontend-api.yaml
 **Branch**: `007-chatkit-ui`
 **Date**: 2026-02-08
+**Status**: ✅ IMPLEMENTATION COMPLETE (Hackathon Phase III)
+
+**Implementation Note**: Delivered as floating chat widget (FloatingChat + ChatUI) instead of separate `/chat` route. This provides better UX with contextual access from Tasks page.
 
 **Organization**: Tasks are grouped into 4 phases (3A-3D) matching the implementation plan. Each phase is independently testable with clear checkpoints.
 
@@ -86,17 +89,22 @@
   - Clickable prompts insert text into input
   - Lumina gradient buttons
 
-### Page Integration
+### Page Integration (Updated for Floating Widget)
 
-- [x] T012 [US1] Create barrel export in `frontend/src/components/Chat/index.ts`
+- [x] T012 [US1] Create FloatingChat component in `frontend/src/components/chat/floating-chat.tsx`
+  - Floating action button (bottom-right corner)
+  - Animated open/close with Framer Motion
+  - Renders ChatUI panel when open
 
-- [x] T013 [US1] Create chat page route in `frontend/src/app/(dashboard)/chat/page.tsx`
-  - Import and render ChatContainer
-  - Protected route (require auth)
+- [x] T013 [US1] Create ChatUI component in `frontend/src/components/chat/chat-ui.tsx`
+  - Self-contained chat interface
+  - Internal state management (messages, input, conversationId)
+  - Quick prompts for empty state
+  - Tool call summary display
 
-- [x] T014 [US1] Add chat link to sidebar navigation in `frontend/src/components/layout/sidebar.tsx`
-  - Chat icon with "Chat" label
-  - Active state styling
+- [x] T014 [US1] Integrate FloatingChat into Tasks page layout in `frontend/src/app/(dashboard)/layout.tsx`
+  - FloatingChat rendered in dashboard layout
+  - Accessible from any dashboard page
 
 **Checkpoint 2**: All UI components built
 - [x] All 6 components render without errors
@@ -149,10 +157,14 @@
   - Deduplicate messages by ID
   - Stop polling when page hidden
 
-- [x] T020 [US2] Implement auto-scroll behavior in `frontend/src/components/Chat/ChatContainer.tsx`
+- [x] T020 [US2] Implement auto-scroll behavior in `frontend/src/components/chat/chat-ui.tsx`
   - scrollIntoView({ behavior: "smooth" }) on new message
-  - Only scroll if user is near bottom (within 100px)
-  - Preserve scroll position if user scrolled up manually
+  - Automatic scroll to bottom on new messages
+
+- [x] T020b [NEW] Implement task list auto-refresh in `frontend/src/components/chat/chat-ui.tsx`
+  - Dispatch 'tasks-updated' custom event after task-related tool calls
+  - useTasks hook listens and triggers refresh
+  - Covers: add_task, update_task, delete_task, complete_task
 
 **Checkpoint 3**: End-to-end messaging works
 - [x] Can send message and receive AI response

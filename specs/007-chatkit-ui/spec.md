@@ -9,6 +9,14 @@
 
 Build a modern chat interface in the frontend that connects users with the OpenRouter-powered todo assistant (from Part 2). Users type natural language requests and see AI responses in a beautiful, real-time chat UI following the **Lumina Deep Purple Royal** theme from Phase II.
 
+### Implementation Note (Hackathon Phase III Compliance)
+
+**Actual Implementation**: The chat interface is delivered as a **floating chat widget** in the bottom-right corner of the Tasks page, rather than a separate `/chat` route. This design:
+- Provides contextual access to the AI assistant while viewing tasks
+- Uses a collapsible panel that opens/closes via a floating action button
+- Automatically refreshes the task list when task-related actions are performed via chat
+- Follows modern chat assistant UX patterns (similar to customer support widgets)
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Send Message and Receive AI Response (Priority: P1)
@@ -134,11 +142,12 @@ As a user, I want AI responses to display formatted text (bold, lists, code) so 
 ### Functional Requirements
 
 #### Core Chat
-- **FR-001**: System MUST display a chat interface accessible from the Phase II todo app
+- **FR-001**: System MUST display a chat interface accessible from the Phase II todo app via floating widget button
 - **FR-002**: System MUST allow users to send text messages via input field
-- **FR-003**: System MUST forward messages to Part 2 OpenRouter agent via backend proxy
+- **FR-003**: System MUST forward messages to Part 2 OpenRouter agent via Phase II backend proxy (`/api/chat`)
 - **FR-004**: System MUST display AI responses in chat message bubbles
-- **FR-005**: System MUST show typing indicator while AI is processing
+- **FR-005**: System MUST show typing/loading indicator while AI is processing
+- **FR-006**: System MUST auto-refresh task list when task-related tools are executed (add_task, update_task, delete_task, complete_task)
 
 #### Message Display
 - **FR-010**: User messages MUST be right-aligned with Lumina user gradient colors

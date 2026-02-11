@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import {
   type TaskPriority,
   PRIORITY_COLORS,
@@ -32,7 +31,7 @@ export function PrioritySelector({
         Priority
       </label>
       <div
-        className="flex flex-wrap gap-2"
+        className="flex flex-wrap gap-2 mt-4"
         role="radiogroup"
         aria-label="Select task priority"
       >
@@ -49,21 +48,20 @@ export function PrioritySelector({
               disabled={disabled}
               onClick={() => onChange(priority)}
               className={cn(
-                "transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                "!bg-transparent !border-none transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 "disabled:cursor-not-allowed disabled:opacity-50"
               )}
             >
-              <Badge
-                variant="outline"
+              <span
                 className={cn(
-                  "cursor-pointer px-3 py-1.5 text-sm font-medium transition-all duration-200",
+                  "!bg-transparent cursor-pointer px-3 py-1.5 text-sm font-medium transition-all duration-200 rounded-full",
                   isSelected
-                    ? cn(colors.bg, colors.text, colors.border, "ring-2 ring-offset-2 ring-current")
-                    : "bg-muted/50 text-muted-foreground hover:bg-muted border-transparent"
+                    ? cn(colors.text, "ring-2 ring-offset-2 ring-current")
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {PRIORITY_LABELS[priority]}
-              </Badge>
+              </span>
             </button>
           );
         })}

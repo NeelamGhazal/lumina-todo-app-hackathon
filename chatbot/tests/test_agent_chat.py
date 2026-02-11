@@ -1,98 +1,23 @@
-# Task T027: Agent Chat Tests
+# Task T027: Agent Chat Tests (Updated for OpenAI Agents SDK)
 """Tests for chat orchestration module.
 
 Tests:
 - Message processing flow
-- Tool execution loop
-- Response formatting
+- Agent response handling
 - Error handling
+
+Updated to work with OpenAI Agents SDK integration.
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
-import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from mcp_server.models import Conversation
 from agent.schemas import ChatResponse, ToolCallSummary
-from agent.chat import process_chat, _build_messages, _format_result_preview
-
-
-class TestBuildMessages:
-    """Tests for _build_messages helper."""
-
-    def test_includes_system_message(self):
-        """Test system message is included first."""
-        messages = _build_messages(
-            "You are a helpful assistant",
-            [],
-            "Hello",
-        )
-
-        assert messages[0]["role"] == "system"
-        assert messages[0]["content"] == "You are a helpful assistant"
-
-    def test_includes_context_messages(self):
-        """Test context messages are included."""
-        context = [
-            {"role": "user", "content": "Previous message"},
-            {"role": "assistant", "content": "Previous response"},
-        ]
-
-        messages = _build_messages("System", context, "New message")
-
-        assert len(messages) == 3
-        assert messages[1]["content"] == "Previous message"
-        assert messages[2]["content"] == "Previous response"
-
-
-class TestFormatResultPreview:
-    """Tests for _format_result_preview helper."""
-
-    def test_format_add_task(self):
-        """Test formatting add_task result."""
-        result = {"task_id": "123", "title": "Buy groceries", "status": "created"}
-        preview = _format_result_preview("add_task", result)
-
-        assert "Buy groceries" in preview
-        assert "Created" in preview
-
-    def test_format_list_tasks(self):
-        """Test formatting list_tasks result."""
-        result = {"tasks": [{"id": "1"}, {"id": "2"}, {"id": "3"}]}
-        preview = _format_result_preview("list_tasks", result)
-
-        assert "3" in preview
-
-    def test_format_complete_task(self):
-        """Test formatting complete_task result."""
-        result = {"task_id": "123", "title": "Buy groceries", "status": "completed"}
-        preview = _format_result_preview("complete_task", result)
-
-        assert "Buy groceries" in preview
-        assert "completed" in preview
-
-    def test_format_delete_task(self):
-        """Test formatting delete_task result."""
-        result = {"task_id": "123", "title": "Old task", "status": "deleted"}
-        preview = _format_result_preview("delete_task", result)
-
-        assert "Old task" in preview
-        assert "Deleted" in preview
-
-    def test_format_update_task(self):
-        """Test formatting update_task result."""
-        result = {"task_id": "123", "title": "Updated task", "status": "updated"}
-        preview = _format_result_preview("update_task", result)
-
-        assert "Updated task" in preview
-
-    def test_format_unknown_tool(self):
-        """Test formatting unknown tool result."""
-        preview = _format_result_preview("unknown_tool", {})
-        assert preview == "Operation completed"
+from agent.chat import process_chat
 
 
 class TestProcessChat:
@@ -103,22 +28,12 @@ class TestProcessChat:
         """Test conversation is created for new user."""
         user_id = uuid4()
 
-        # Mock the client and tools
-        with patch("agent.chat.get_openrouter_client") as mock_get_client, \
-             patch("agent.chat.get_agent_settings") as mock_settings:
+        # Mock the agent SDK
+        with patch("agent.chat.is_agent_ready") as mock_ready, \
+             patch("agent.chat.run_agent") as mock_run:
 
-            mock_client = MagicMock()
-            mock_response = MagicMock()
-            mock_response.choices = [MagicMock()]
-            mock_response.choices[0].finish_reason = "stop"
-            mock_response.choices[0].message.tool_calls = None
-            mock_response.choices[0].message.content = "Hello! How can I help?"
-
-            mock_client.create_chat_completion = AsyncMock(return_value=mock_response)
-            mock_get_client.return_value = mock_client
-
-            mock_settings.return_value.agent_instructions = "You are helpful"
-            mock_settings.return_value.max_tool_rounds = 5
+            mock_ready.return_value = True
+            mock_run.return_value = ("Hello! How can I help?", [])
 
             response = await process_chat("Hello", user_id, test_session)
 
@@ -131,21 +46,11 @@ class TestProcessChat:
         """Test user and assistant messages are stored."""
         user_id = uuid4()
 
-        with patch("agent.chat.get_openrouter_client") as mock_get_client, \
-             patch("agent.chat.get_agent_settings") as mock_settings:
+        with patch("agent.chat.is_agent_ready") as mock_ready, \
+             patch("agent.chat.run_agent") as mock_run:
 
-            mock_client = MagicMock()
-            mock_response = MagicMock()
-            mock_response.choices = [MagicMock()]
-            mock_response.choices[0].finish_reason = "stop"
-            mock_response.choices[0].message.tool_calls = None
-            mock_response.choices[0].message.content = "Response"
-
-            mock_client.create_chat_completion = AsyncMock(return_value=mock_response)
-            mock_get_client.return_value = mock_client
-
-            mock_settings.return_value.agent_instructions = "System"
-            mock_settings.return_value.max_tool_rounds = 5
+            mock_ready.return_value = True
+            mock_run.return_value = ("Response", [])
 
             response = await process_chat("User message", user_id, test_session)
 
@@ -163,47 +68,17 @@ class TestProcessChat:
 
     @pytest.mark.asyncio
     async def test_handles_tool_calls(self, test_session: AsyncSession):
-        """Test tool calls are executed."""
+        """Test tool calls are executed and reported."""
         user_id = uuid4()
 
-        with patch("agent.chat.get_openrouter_client") as mock_get_client, \
-             patch("agent.chat.get_agent_settings") as mock_settings, \
-             patch("agent.chat.execute_mcp_tool") as mock_execute:
+        with patch("agent.chat.is_agent_ready") as mock_ready, \
+             patch("agent.chat.run_agent") as mock_run:
 
-            mock_client = MagicMock()
-
-            # First response: tool call
-            mock_tool_response = MagicMock()
-            mock_tool_response.choices = [MagicMock()]
-            mock_tool_response.choices[0].finish_reason = "tool_calls"
-            mock_tool_response.choices[0].message.content = None
-
-            mock_tool_call = MagicMock()
-            mock_tool_call.id = "call_123"
-            mock_tool_call.function.name = "add_task"
-            mock_tool_call.function.arguments = '{"title": "Test task"}'
-            mock_tool_response.choices[0].message.tool_calls = [mock_tool_call]
-
-            # Second response: final
-            mock_final_response = MagicMock()
-            mock_final_response.choices = [MagicMock()]
-            mock_final_response.choices[0].finish_reason = "stop"
-            mock_final_response.choices[0].message.tool_calls = None
-            mock_final_response.choices[0].message.content = "I've added your task!"
-
-            mock_client.create_chat_completion = AsyncMock(
-                side_effect=[mock_tool_response, mock_final_response]
+            mock_ready.return_value = True
+            mock_run.return_value = (
+                "I've added your task!",
+                [{"tool": "add_task", "success": True, "result_preview": "Created"}]
             )
-            mock_get_client.return_value = mock_client
-
-            mock_settings.return_value.agent_instructions = "System"
-            mock_settings.return_value.max_tool_rounds = 5
-
-            mock_execute.return_value = {
-                "task_id": str(uuid4()),
-                "title": "Test task",
-                "status": "created",
-            }
 
             response = await process_chat("Add a task", user_id, test_session)
 
@@ -214,52 +89,16 @@ class TestProcessChat:
             assert response.tool_calls[0].success is True
 
     @pytest.mark.asyncio
-    async def test_handles_tool_error(self, test_session: AsyncSession):
-        """Test tool errors are handled gracefully."""
+    async def test_handles_agent_not_ready(self, test_session: AsyncSession):
+        """Test handling when agent is not initialized."""
         user_id = uuid4()
 
-        with patch("agent.chat.get_openrouter_client") as mock_get_client, \
-             patch("agent.chat.get_agent_settings") as mock_settings, \
-             patch("agent.chat.execute_mcp_tool") as mock_execute:
+        with patch("agent.chat.is_agent_ready") as mock_ready:
+            mock_ready.return_value = False
 
-            mock_client = MagicMock()
+            response = await process_chat("Hello", user_id, test_session)
 
-            # Tool call response
-            mock_tool_response = MagicMock()
-            mock_tool_response.choices = [MagicMock()]
-            mock_tool_response.choices[0].finish_reason = "tool_calls"
-            mock_tool_response.choices[0].message.content = None
-
-            mock_tool_call = MagicMock()
-            mock_tool_call.id = "call_456"
-            mock_tool_call.function.name = "complete_task"
-            mock_tool_call.function.arguments = '{"task_id": "nonexistent"}'
-            mock_tool_response.choices[0].message.tool_calls = [mock_tool_call]
-
-            # Final response after error
-            mock_final_response = MagicMock()
-            mock_final_response.choices = [MagicMock()]
-            mock_final_response.choices[0].finish_reason = "stop"
-            mock_final_response.choices[0].message.tool_calls = None
-            mock_final_response.choices[0].message.content = "I couldn't find that task."
-
-            mock_client.create_chat_completion = AsyncMock(
-                side_effect=[mock_tool_response, mock_final_response]
-            )
-            mock_get_client.return_value = mock_client
-
-            mock_settings.return_value.agent_instructions = "System"
-            mock_settings.return_value.max_tool_rounds = 5
-
-            from agent.tools import ToolExecutionError
-            mock_execute.side_effect = ToolExecutionError(
-                "complete_task", "Task not found"
-            )
-
-            response = await process_chat("Complete task", user_id, test_session)
-
-            assert response.tool_calls is not None
-            assert response.tool_calls[0].success is False
+            assert "not available" in response.message.lower()
 
     @pytest.mark.asyncio
     async def test_continues_existing_conversation(self, test_session: AsyncSession):
@@ -271,21 +110,11 @@ class TestProcessChat:
         test_session.add(conv)
         await test_session.flush()
 
-        with patch("agent.chat.get_openrouter_client") as mock_get_client, \
-             patch("agent.chat.get_agent_settings") as mock_settings:
+        with patch("agent.chat.is_agent_ready") as mock_ready, \
+             patch("agent.chat.run_agent") as mock_run:
 
-            mock_client = MagicMock()
-            mock_response = MagicMock()
-            mock_response.choices = [MagicMock()]
-            mock_response.choices[0].finish_reason = "stop"
-            mock_response.choices[0].message.tool_calls = None
-            mock_response.choices[0].message.content = "Response"
-
-            mock_client.create_chat_completion = AsyncMock(return_value=mock_response)
-            mock_get_client.return_value = mock_client
-
-            mock_settings.return_value.agent_instructions = "System"
-            mock_settings.return_value.max_tool_rounds = 5
+            mock_ready.return_value = True
+            mock_run.return_value = ("Response", [])
 
             response = await process_chat(
                 "Hello", user_id, test_session, conversation_id=conv.id
@@ -294,23 +123,41 @@ class TestProcessChat:
             assert response.conversation_id == conv.id
 
     @pytest.mark.asyncio
-    async def test_handles_llm_error(self, test_session: AsyncSession):
-        """Test handling of LLM errors."""
+    async def test_handles_agent_error(self, test_session: AsyncSession):
+        """Test handling of agent errors."""
         user_id = uuid4()
 
-        with patch("agent.chat.get_openrouter_client") as mock_get_client, \
-             patch("agent.chat.get_agent_settings") as mock_settings:
+        with patch("agent.chat.is_agent_ready") as mock_ready, \
+             patch("agent.chat.run_agent") as mock_run:
 
-            mock_client = MagicMock()
-            mock_client.create_chat_completion = AsyncMock(
-                side_effect=Exception("API Error")
-            )
-            mock_get_client.return_value = mock_client
-
-            mock_settings.return_value.agent_instructions = "System"
-            mock_settings.return_value.max_tool_rounds = 5
+            mock_ready.return_value = True
+            mock_run.side_effect = Exception("Agent Error")
 
             response = await process_chat("Hello", user_id, test_session)
 
             # Should return error message
             assert "error" in response.message.lower()
+
+    @pytest.mark.asyncio
+    async def test_tool_call_summary_format(self, test_session: AsyncSession):
+        """Test tool call summaries are properly formatted."""
+        user_id = uuid4()
+
+        with patch("agent.chat.is_agent_ready") as mock_ready, \
+             patch("agent.chat.run_agent") as mock_run:
+
+            mock_ready.return_value = True
+            mock_run.return_value = (
+                "Done!",
+                [
+                    {"tool": "list_tasks", "success": True, "result_preview": "3 tasks"},
+                    {"tool": "complete_task", "success": True, "result_preview": "Completed"},
+                ]
+            )
+
+            response = await process_chat("List and complete", user_id, test_session)
+
+            assert response.tool_calls is not None
+            assert len(response.tool_calls) == 2
+            assert response.tool_calls[0].tool == "list_tasks"
+            assert response.tool_calls[1].tool == "complete_task"

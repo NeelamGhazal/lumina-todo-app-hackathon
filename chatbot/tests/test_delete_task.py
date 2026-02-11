@@ -129,3 +129,156 @@ class TestDeleteTask:
             },
         )
         assert len(list_resp.json()["data"]["tasks"]) == 1
+
+    async def test_delete_completed_task(self, client, test_user_id):
+        """Given a completed task, should delete successfully regardless of status."""
+        # Create a task
+        create_resp = await client.post(
+            "/mcp/call",
+            json={
+                "tool": "add_task",
+                "parameters": {
+                    "user_id": str(test_user_id),
+                    "title": "Completed task to delete",
+                },
+            },
+        )
+        task_id = create_resp.json()["data"]["task_id"]
+
+        # Complete the task
+        complete_resp = await client.post(
+            "/mcp/call",
+            json={
+                "tool": "complete_task",
+                "parameters": {
+                    "user_id": str(test_user_id),
+                    "task_id": task_id,
+                },
+            },
+        )
+        assert complete_resp.json()["data"]["status"] == "completed"
+
+        # Delete the completed task - THIS MUST WORK
+        response = await client.post(
+            "/mcp/call",
+            json={
+                "tool": "delete_task",
+                "parameters": {
+                    "user_id": str(test_user_id),
+                    "task_id": task_id,
+                },
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "success"
+        assert data["data"]["status"] == "deleted"
+        assert data["data"]["task_id"] == task_id
+
+        # Verify task is removed from DB
+        list_resp = await client.post(
+            "/mcp/call",
+            json={
+                "tool": "list_tasks",
+                "parameters": {
+                    "user_id": str(test_user_id),
+                    "status": "all",
+                },
+            },
+        )
+        tasks = list_resp.json()["data"]["tasks"]
+        task_ids = [t["id"] for t in tasks]
+        assert task_id not in task_ids
+
+    async def test_delete_pending_task(self, client, test_user_id):
+        """Given a pending task, should delete successfully."""
+        # Create a pending task
+        create_resp = await client.post(
+            "/mcp/call",
+            json={
+                "tool": "add_task",
+                "parameters": {
+                    "user_id": str(test_user_id),
+                    "title": "Pending task to delete",
+                },
+            },
+        )
+        task_id = create_resp.json()["data"]["task_id"]
+        assert create_resp.json()["data"]["status"] == "created"  # Task was created (pending by default)
+
+        # Delete the pending task
+        response = await client.post(
+            "/mcp/call",
+            json={
+                "tool": "delete_task",
+                "parameters": {
+                    "user_id": str(test_user_id),
+                    "task_id": task_id,
+                },
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "success"
+        assert data["data"]["status"] == "deleted"
+
+        # Verify task is removed from task list
+        list_resp = await client.post(
+            "/mcp/call",
+            json={
+                "tool": "list_tasks",
+                "parameters": {
+                    "user_id": str(test_user_id),
+                },
+            },
+        )
+        tasks = list_resp.json()["data"]["tasks"]
+        assert len(tasks) == 0
+
+    async def test_delete_removes_from_db(self, client, test_user_id):
+        """Verify deleted task is completely removed from database."""
+        # Create multiple tasks
+        task_ids = []
+        for i in range(3):
+            create_resp = await client.post(
+                "/mcp/call",
+                json={
+                    "tool": "add_task",
+                    "parameters": {
+                        "user_id": str(test_user_id),
+                        "title": f"Task {i+1}",
+                    },
+                },
+            )
+            task_ids.append(create_resp.json()["data"]["task_id"])
+
+        # Delete middle task
+        await client.post(
+            "/mcp/call",
+            json={
+                "tool": "delete_task",
+                "parameters": {
+                    "user_id": str(test_user_id),
+                    "task_id": task_ids[1],
+                },
+            },
+        )
+
+        # Verify only 2 tasks remain
+        list_resp = await client.post(
+            "/mcp/call",
+            json={
+                "tool": "list_tasks",
+                "parameters": {
+                    "user_id": str(test_user_id),
+                },
+            },
+        )
+        tasks = list_resp.json()["data"]["tasks"]
+        assert len(tasks) == 2
+        remaining_ids = [t["id"] for t in tasks]
+        assert task_ids[0] in remaining_ids
+        assert task_ids[1] not in remaining_ids  # Deleted
+        assert task_ids[2] in remaining_ids

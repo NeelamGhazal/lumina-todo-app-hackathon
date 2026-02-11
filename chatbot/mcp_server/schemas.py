@@ -154,13 +154,21 @@ class DeleteTaskParams(BaseModel):
 class UpdateTaskParams(BaseModel):
     """Parameters for update_task tool (FR-050-054).
 
-    At least one of title or description must be provided.
+    At least one updatable field must be provided.
 
     Attributes:
         user_id: User's unique identifier (required)
         task_id: Task to update (required)
         title: New title, 1-200 chars (optional)
         description: New description, max 1000 chars (optional)
+        priority: New priority: high, medium, or low (optional)
+        category: New category (optional)
+        tags: New list of tags (optional)
+        due_date: New due date in YYYY-MM-DD format (optional)
+        due_time: New due time in HH:MM format (optional)
+        clear_due_date: Set to true to remove due date (optional)
+        clear_due_time: Set to true to remove due time (optional)
+        clear_description: Set to true to remove description (optional)
     """
 
     user_id: UUID = Field(..., description="User's unique identifier")
@@ -176,6 +184,38 @@ class UpdateTaskParams(BaseModel):
         max_length=1000,
         description="New description",
     )
+    priority: TaskPriorityEnum | None = Field(
+        default=None,
+        description="New priority: high, medium, or low",
+    )
+    category: TaskCategoryEnum | None = Field(
+        default=None,
+        description="New category: work, personal, shopping, health, other",
+    )
+    tags: list[str] | None = Field(
+        default=None,
+        description="New list of tags (replaces existing tags)",
+    )
+    due_date: str | None = Field(
+        default=None,
+        description="New due date in YYYY-MM-DD format",
+    )
+    due_time: str | None = Field(
+        default=None,
+        description="New due time in HH:MM format (24-hour)",
+    )
+    clear_due_date: bool = Field(
+        default=False,
+        description="Set to true to remove the due date",
+    )
+    clear_due_time: bool = Field(
+        default=False,
+        description="Set to true to remove the due time",
+    )
+    clear_description: bool = Field(
+        default=False,
+        description="Set to true to remove the description",
+    )
 
     @field_validator("title")
     @classmethod
@@ -187,8 +227,20 @@ class UpdateTaskParams(BaseModel):
 
     def model_post_init(self, __context: Any) -> None:
         """Validate at least one field to update is provided (FR-051)."""
-        if self.title is None and self.description is None:
-            raise ValueError("At least one field (title or description) must be provided")
+        has_update = any([
+            self.title is not None,
+            self.description is not None,
+            self.priority is not None,
+            self.category is not None,
+            self.tags is not None,
+            self.due_date is not None,
+            self.due_time is not None,
+            self.clear_due_date,
+            self.clear_due_time,
+            self.clear_description,
+        ])
+        if not has_update:
+            raise ValueError("At least one field must be provided to update")
 
 
 # === Response Models ===

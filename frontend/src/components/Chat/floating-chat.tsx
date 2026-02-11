@@ -8,16 +8,17 @@ import { ChatUI } from "./chat-ui";
 /**
  * FloatingChat - Floating chat widget in bottom-right corner
  * Opens a chat panel when clicked
+ * Supports both light and dark themes via Tailwind dark: prefix
  */
 export function FloatingChat() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating button - theme aware */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg flex items-center justify-center hover:from-purple-700 hover:to-pink-700 transition-all"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-purple-800 dark:from-purple-600 dark:to-pink-600 text-white shadow-lg dark:shadow-purple-900/30 flex items-center justify-center hover:from-purple-700 hover:to-purple-900 dark:hover:from-purple-700 dark:hover:to-pink-700 transition-all"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         aria-label={isOpen ? "Close chat" : "Open chat assistant"}
@@ -47,11 +48,11 @@ export function FloatingChat() {
         </AnimatePresence>
       </motion.button>
 
-      {/* Chat panel */}
+      {/* Chat panel - theme aware with proper light/dark borders and shadows */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed bottom-24 right-6 z-50 w-[400px] h-[600px] max-h-[80vh] rounded-2xl overflow-hidden shadow-2xl border border-purple-700/30"
+            className="fixed bottom-24 right-6 z-50 w-[400px] h-[600px] max-h-[80vh] rounded-2xl overflow-hidden shadow-xl border chat-widget-panel"
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}

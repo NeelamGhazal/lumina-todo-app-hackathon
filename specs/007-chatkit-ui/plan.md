@@ -5,7 +5,15 @@
 
 ## Summary
 
-Build a modern chat interface that connects users with the OpenRouter-powered todo assistant. The UI follows the Lumina Deep Purple Royal theme from Phase II, integrates with existing authentication, and provides real-time conversation with the AI agent via polling.
+Build a modern chat interface that connects users with the OpenRouter-powered todo assistant. The UI follows the Lumina Deep Purple Royal theme from Phase II, integrates with existing authentication, and provides real-time conversation with the AI agent.
+
+### Implementation Status (Hackathon Phase III)
+
+**Delivered**: Floating chat widget accessible from Tasks page via bottom-right FAB button. Key features:
+- `FloatingChat` component with animated open/close
+- `ChatUI` component with full messaging capabilities
+- Auto-refresh task list on task-related actions
+- Lumina Deep Purple Royal theme (dark/light mode)
 
 ## Technical Context
 
@@ -83,24 +91,27 @@ Build a modern chat interface that connects users with the OpenRouter-powered to
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Component Hierarchy
+### Component Hierarchy (Actual Implementation)
 
 ```
-ChatPage
-└── ChatContainer
-    ├── MessageList
-    │   ├── MessageBubble (user)
-    │   │   └── Timestamp
-    │   ├── MessageBubble (assistant)
-    │   │   ├── Markdown
-    │   │   └── Timestamp
-    │   └── TypingIndicator
-    ├── EmptyState (when no messages)
-    │   └── SuggestedPrompts
-    └── MessageInput
-        ├── Textarea
-        └── SendButton
+TasksPage
+└── FloatingChat (bottom-right FAB)
+    └── ChatUI (expandable panel)
+        ├── Header (avatar + title)
+        ├── MessagesArea
+        │   ├── EmptyState (when no messages)
+        │   │   └── QuickPrompts
+        │   └── MessageBubble[] (user/assistant)
+        │       └── ToolCallsSummary (when applicable)
+        └── InputArea
+            ├── TextInput
+            └── SendButton
 ```
+
+**Key Components**:
+- `FloatingChat` - Floating action button + animated panel container
+- `ChatUI` - Self-contained chat interface with state management
+- `MessageBubble` - Renders user/assistant messages with tool call indicators
 
 ## Project Structure
 
@@ -117,44 +128,41 @@ specs/007-chatkit-ui/
 └── tasks.md             # Implementation tasks (Phase 2)
 ```
 
-### Source Code (repository root)
+### Source Code (Actual Implementation)
 
 ```text
 frontend/src/
 ├── app/
 │   └── (dashboard)/
-│       └── chat/
-│           └── page.tsx           # Chat page route
+│       └── tasks/
+│           └── page.tsx           # Tasks page (includes FloatingChat)
 ├── components/
-│   ├── Chat/
-│   │   ├── index.ts               # Barrel export
-│   │   ├── ChatContainer.tsx      # Main layout
-│   │   ├── MessageList.tsx        # Scrollable message area
-│   │   ├── MessageBubble.tsx      # Individual message
-│   │   ├── MessageInput.tsx       # Input + send button
-│   │   ├── TypingIndicator.tsx    # AI typing animation
-│   │   └── EmptyState.tsx         # Welcome + prompts
-│   └── layout/
-│       └── sidebar.tsx            # Add chat link (modify)
+│   └── chat/
+│       ├── chat-ui.tsx            # Main ChatUI component (self-contained)
+│       ├── floating-chat.tsx      # Floating action button + panel
+│       ├── ChatContainer.tsx      # Legacy container (if used)
+│       ├── MessageList.tsx        # Message list component
+│       ├── MessageBubble.tsx      # Individual message bubble
+│       ├── MessageInput.tsx       # Input field component
+│       ├── TypingIndicator.tsx    # Loading animation
+│       └── EmptyState.tsx         # Welcome state with prompts
 ├── lib/
 │   └── api/
-│       ├── chat.ts                # Chat API functions
-│       └── endpoints.ts           # Add chat exports (modify)
+│       └── endpoints.ts           # chatApi.sendMessage() included
 ├── hooks/
-│   └── useChat.ts                 # Chat state management
+│   └── use-tasks.ts               # Listens for 'tasks-updated' event
 └── types/
-    └── chat.ts                    # TypeScript interfaces
+    └── api.ts                     # ChatResponse type included
 
-frontend/tests/
-└── components/
-    └── Chat/
-        ├── ChatContainer.test.tsx
-        ├── MessageBubble.test.tsx
-        ├── MessageInput.test.tsx
-        └── useChat.test.ts
+api/app/routers/
+└── chat.py                        # Backend proxy to Part 2 agent
 ```
 
-**Structure Decision**: Frontend-only feature added to existing Phase II Next.js app. No backend changes required.
+**Structure Decision**:
+- FloatingChat widget integrated directly into Tasks page layout
+- ChatUI is self-contained with internal state management
+- Backend proxy routes chat requests to Part 2 OpenRouter agent
+- Task list auto-refreshes via custom 'tasks-updated' event
 
 ---
 
@@ -162,22 +170,23 @@ frontend/tests/
 
 ### ADR-009: Chat UI Integration Point
 
-**Status**: Accepted
+**Status**: Accepted (Updated)
 
-**Context**: Need to integrate chat UI into existing Phase II todo app. Options: new route, modal overlay, or persistent sidebar.
+**Context**: Need to integrate chat UI into existing Phase II todo app. Options: new route, modal overlay, floating widget, or persistent sidebar.
 
-**Decision**: New route `/chat` within `(dashboard)` route group.
+**Decision**: Floating chat widget in bottom-right corner of Tasks page.
 
 **Rationale**:
-- Clean separation of concerns (chat is distinct from task management)
-- Full-screen chat experience (not cramped in modal)
-- Shares dashboard layout (sidebar, header, theme toggle)
-- Easy navigation via sidebar link
+- Contextual access - users can chat while viewing their tasks
+- Non-intrusive - collapsible panel doesn't obstruct task view
+- Modern UX pattern - similar to customer support chat widgets
+- Auto-refresh integration - task list updates when actions performed via chat
+- No extra navigation - accessible with single click from Tasks page
 
 **Consequences**:
-- Extra navigation click to access chat
-- Users see chat as separate feature (intentional)
-- Full viewport for messages on mobile
+- Chat overlays content when open (acceptable trade-off)
+- Fixed position may conflict with mobile keyboards (mitigated with proper positioning)
+- Seamless task management workflow
 
 ### ADR-010: Real-Time Update Strategy
 
