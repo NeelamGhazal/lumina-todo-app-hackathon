@@ -91,7 +91,7 @@ uv run pytest api/tests/test_notifications.py -v
 
 **Purpose**: Business logic for creating notifications with duplicate prevention
 
-- [ ] T008 Create notification service in `api/app/services/notification_service.py`
+- [x] T008 Create notification service in `api/app/services/notification_service.py`
   ```python
   async def create_notification(session, user_id, type, message, task_id=None) -> Notification | None
   async def check_duplicate_exists(session, task_id, type) -> bool
@@ -99,7 +99,7 @@ uv run pytest api/tests/test_notifications.py -v
   async def generate_overdue_notifications(session) -> int
   async def cleanup_old_notifications(session, days=30) -> int
   ```
-- [ ] T009 Add service tests in `api/tests/test_notification_service.py`
+- [x] T009 Add service tests in `api/tests/test_notification_service.py`
   - test_create_notification_success
   - test_create_notification_prevents_duplicates
   - test_generate_due_soon_finds_tasks_due_tomorrow
