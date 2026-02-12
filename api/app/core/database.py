@@ -7,6 +7,9 @@ from sqlmodel import SQLModel
 
 from app.core.config import get_settings
 
+# Import all models to ensure they're registered with SQLModel metadata
+from app.models import Notification, NotificationType, Task, User  # noqa: F401
+
 settings = get_settings()
 
 # Configure connect_args for SQLite concurrency
