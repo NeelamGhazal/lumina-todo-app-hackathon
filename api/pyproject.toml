@@ -17,6 +17,7 @@ dependencies = [
     "pydantic[email]>=2.0.0",
     "alembic>=1.14.0",
     "httpx>=0.28.0",
+    "resend>=2.0.0",
 ]
 
 [project.optional-dependencies]
@@ -45,3 +46,4 @@ select = ["E", "F", "W", "I", "UP"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+pythonpath = ["."]

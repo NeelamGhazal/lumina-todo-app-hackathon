@@ -41,23 +41,23 @@
 
 ### Schemas
 
-- [ ] T004 [P] Create notification schemas in `api/app/schemas/notification.py`
+- [x] T004 [P] Create notification schemas in `api/app/schemas/notification.py`
   - NotificationResponse: id, userId, taskId, type, message, isRead, createdAt
   - NotificationListResponse: notifications[], total, unreadCount
   - UnreadCountResponse: count
 
 ### Router
 
-- [ ] T005 Create notifications router in `api/app/routers/notifications.py`
+- [x] T005 Create notifications router in `api/app/routers/notifications.py`
   - GET `/api/notifications` - List notifications (limit param, unread_only param)
   - GET `/api/notifications/unread-count` - Get unread count only
   - PATCH `/api/notifications/{notification_id}/read` - Mark single as read
   - DELETE `/api/notifications` - Clear all notifications
-- [ ] T006 Register router in `api/app/main.py`
+- [x] T006 Register router in `api/app/main.py`
 
 ### Verification Tests
 
-- [ ] T007 [P] Create `api/tests/test_notifications.py` with tests:
+- [x] T007 [P] Create `api/tests/test_notifications.py` with tests:
   - test_get_notifications_empty - Returns empty list for new user
   - test_get_notifications_with_data - Returns notifications sorted by created_at DESC
   - test_get_unread_count - Returns correct count

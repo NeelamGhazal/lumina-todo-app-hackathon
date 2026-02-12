@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import get_settings
 from app.core.database import init_db
-from app.routers import auth_router, tasks_router, chat_router
+from app.routers import auth_router, chat_router, notifications_router, tasks_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -55,6 +55,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth_router, prefix="/api")
+app.include_router(notifications_router, prefix="/api")
 app.include_router(tasks_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 

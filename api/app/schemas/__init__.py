@@ -8,6 +8,12 @@ from app.schemas.auth import (
     SessionResponse,
     UserResponse,
 )
+from app.schemas.notification import (
+    ClearNotificationsResponse,
+    NotificationListResponse,
+    NotificationResponse,
+    UnreadCountResponse,
+)
 from app.schemas.task import (
     CreateTaskRequest,
     CreateTaskResponse,
@@ -28,6 +34,11 @@ __all__ = [
     "RegisterResponse",
     "SessionResponse",
     "UserResponse",
+    # Notification
+    "ClearNotificationsResponse",
+    "NotificationListResponse",
+    "NotificationResponse",
+    "UnreadCountResponse",
     # Task
     "CreateTaskRequest",
     "CreateTaskResponse",
