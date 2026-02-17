@@ -8,7 +8,7 @@ import { useSidebar } from "@/hooks/use-sidebar";
 import { useFilter, FilterProvider } from "@/contexts/filter-context";
 import { Sidebar, type FilterType, type CategoryType, type PriorityType } from "./sidebar";
 import { DashboardHeader } from "./dashboard-header";
-import { FloatingChat } from "@/components/chat/floating-chat";
+import { FloatingChat } from "@/components/Chat/floating-chat";
 
 interface DashboardLayoutWrapperProps {
   children: React.ReactNode;
