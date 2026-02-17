@@ -219,6 +219,10 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Neon PostgreSQL (shared with Part 1 - conversations, messages tables) (006-openai-agent-mcp)
 - TypeScript 5.x (strict mode) + React 18+, Next.js 16+, Tailwind CSS, framer-motion, react-markdown (007-chatkit-ui)
 - Backend (Part 2 agent manages via SQLModel) (007-chatkit-ui)
+- Python 3.13+ (Backend), TypeScript 5.x (Frontend) + FastAPI, SQLModel, Resend (email), Next.js 16+, Tailwind CSS (008-password-reset)
+- SQLite (existing, via SQLModel) - extend User model (008-password-reset)
+- Python 3.13+ (Backend), TypeScript 5.x (Frontend) + FastAPI, SQLModel (Backend); NextAuth.js v5, Next.js 16 (Frontend) (010-oauth-social-login)
+- SQLite via SQLModel (existing) (010-oauth-social-login)
 
 ## Recent Changes
 - 002-phase2-todo-frontend: Added TypeScript 5.x (strict mode, no `any` types)

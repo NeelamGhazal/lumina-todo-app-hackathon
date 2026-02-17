@@ -173,6 +173,143 @@ export const HTTP_STATUS = {
 } as const;
 
 // =============================================================================
+// Password Reset Types
+// =============================================================================
+
+/**
+ * Request body for forgot password
+ */
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+/**
+ * Response from forgot password
+ */
+export interface ForgotPasswordResponse {
+  message: string;
+}
+
+/**
+ * Response from verify reset token
+ */
+export interface VerifyTokenResponse {
+  valid: boolean;
+  email: string | null;
+  error?: string;
+}
+
+/**
+ * Request body for reset password
+ */
+export interface ResetPasswordRequest {
+  token: string;
+  password: string;
+  password_confirm: string;
+}
+
+/**
+ * Response from reset password
+ */
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+// =============================================================================
+// Notification Types
+// =============================================================================
+
+/**
+ * Notification type enum
+ */
+export type NotificationType = "TASK_DUE_SOON" | "TASK_OVERDUE" | "TASK_COMPLETED";
+
+/**
+ * Notification entity
+ */
+export interface Notification {
+  id: string;
+  userId: string;
+  taskId?: string | null;
+  type: NotificationType;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+/**
+ * Response from listing notifications
+ */
+export interface NotificationListResponse {
+  notifications: Notification[];
+  total: number;
+  unreadCount: number;
+}
+
+/**
+ * Response from getting unread count
+ */
+export interface UnreadCountResponse {
+  count: number;
+}
+
+/**
+ * Response from clearing notifications
+ */
+export interface ClearNotificationsResponse {
+  success: boolean;
+  deletedCount: number;
+}
+
+/**
+ * Response from triggering notification job
+ */
+export interface TriggerJobResponse {
+  dueSoonCount: number;
+  overdueCount: number;
+}
+
+// =============================================================================
+// OAuth Types (specs/010-oauth-social-login)
+// =============================================================================
+
+/**
+ * OAuth provider type
+ */
+export type OAuthProvider = "google" | "github";
+
+/**
+ * Request body for OAuth login
+ */
+export interface OAuthLoginRequest {
+  provider: OAuthProvider;
+  provider_id: string;
+  email: string;
+  name?: string | null;
+  image_url?: string | null;
+}
+
+/**
+ * OAuth user info in response
+ */
+export interface OAuthUser {
+  id: string;
+  email: string;
+  name?: string | null;
+  is_new_user: boolean;
+}
+
+/**
+ * Response from OAuth login
+ */
+export interface OAuthLoginResponse {
+  access_token: string;
+  token_type: "bearer";
+  user: OAuthUser;
+}
+
+// =============================================================================
 // Error Codes
 // =============================================================================
 
@@ -182,6 +319,19 @@ export const ERROR_CODES = {
   EMAIL_ALREADY_EXISTS: "EMAIL_ALREADY_EXISTS",
   SESSION_EXPIRED: "SESSION_EXPIRED",
   UNAUTHORIZED: "UNAUTHORIZED",
+  OAUTH_ACCOUNT: "OAUTH_ACCOUNT",
+  INVALID_PROVIDER: "INVALID_PROVIDER",
+
+  // Password reset errors
+  RATE_LIMIT_EXCEEDED: "RATE_LIMIT_EXCEEDED",
+  INVALID_TOKEN: "INVALID_TOKEN",
+  TOKEN_EXPIRED: "TOKEN_EXPIRED",
+  TOKEN_USED: "TOKEN_USED",
+  PASSWORD_MISMATCH: "PASSWORD_MISMATCH",
+  INVALID_PASSWORD: "INVALID_PASSWORD",
+
+  // HTTP Status codes as error codes
+  TOO_MANY_REQUESTS: "TOO_MANY_REQUESTS",
 
   // Validation errors
   VALIDATION_ERROR: "VALIDATION_ERROR",

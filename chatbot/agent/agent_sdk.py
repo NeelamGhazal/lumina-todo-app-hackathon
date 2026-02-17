@@ -70,27 +70,28 @@ def _configure_openrouter_client() -> None:
 async def add_task(
     title: str,
     description: str = "",
-    priority: str = "",
-    category: str = "",
+    priority: str = "medium",
+    category: str = "personal",
     tags: str = "",
     due_date: str = "",
     due_time: str = "",
 ) -> str:
-    """Create exactly ONE new task. Call this only ONCE per user request.
+    """Create a new task with smart defaults. Call this only ONCE per user request.
 
-    STRICT RULES:
-    - Only include fields the user explicitly mentioned
-    - Do NOT put priority/date/time/tags into description
-    - Each field has its own parameter
+    NATURAL LANGUAGE PARSING:
+    - Parse "today/tomorrow/weekday names" to YYYY-MM-DD dates
+    - Parse "X AM/PM" to HH:MM 24-hour times
+    - Auto-detect category from keywords (shopping, work, health words)
+    - Apply smart defaults for missing fields
 
     Args:
-        title: The task title/name (required)
-        description: Descriptive text ONLY - never include priority/date/time/tags here
-        priority: Must be exactly "high", "medium", or "low" if user specified
-        category: Must be "work", "personal", "shopping", "health", or "other"
-        tags: Comma-separated tags if user specified any
-        due_date: YYYY-MM-DD format only
-        due_time: HH:MM 24-hour format only
+        title: Clean task title (remove scheduling/priority words)
+        description: Optional descriptive text
+        priority: "high", "medium", or "low" (default: "medium")
+        category: "work", "personal", "shopping", "health", or "other" (default: "personal", or auto-detect)
+        tags: Comma-separated tags if mentioned
+        due_date: YYYY-MM-DD format (parsed from natural language)
+        due_time: HH:MM 24-hour format (parsed from AM/PM)
 
     Returns:
         JSON string with task creation result

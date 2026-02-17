@@ -7,7 +7,9 @@ from fastapi import APIRouter, HTTPException, Query, status
 from sqlmodel import select
 
 from app.core.deps import CurrentUser, DbSession
+from app.models.notification import Notification, NotificationType
 from app.models.task import Task, TaskCategory, TaskPriority
+from app.services.notification_service import create_notification
 from app.schemas.task import (
     CreateTaskRequest,
     CreateTaskResponse,
@@ -235,10 +237,34 @@ async def toggle_complete(
             detail={"error": "TASK_NOT_FOUND", "message": "Task not found"},
         )
 
+    was_completed = task.completed
     task.completed = not task.completed
     task.completed_at = datetime.now(UTC) if task.completed else None
     task.updated_at = datetime.now(UTC)
     await session.flush()
     await session.refresh(task)
+
+    # Create completion notification when task is marked complete
+    if task.completed:
+        await create_notification(
+            session=session,
+            user_id=current_user.id,
+            notification_type=NotificationType.TASK_COMPLETED,
+            message=f"You completed: {task.title}",
+            task_id=task.id,
+        )
+    # ISSUE 3 FIX: Delete completion notification when task is uncompleted
+    elif was_completed:
+        # Task was completed, now uncompleted - delete the completion notification
+        result = await session.execute(
+            select(Notification).where(
+                Notification.task_id == task_id,
+                Notification.type == NotificationType.TASK_COMPLETED,
+                Notification.user_id == current_user.id,
+            )
+        )
+        completion_notification = result.scalar_one_or_none()
+        if completion_notification:
+            await session.delete(completion_notification)
 
     return ToggleCompleteResponse(task=task_to_response(task))

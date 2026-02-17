@@ -74,6 +74,50 @@ export const signupSchema = z
 
 export type SignupFormData = z.infer<typeof signupSchema>;
 
+/**
+ * Forgot password form schema
+ */
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email format"),
+});
+
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+
+/**
+ * Reset password form schema
+ * Validates password requirements: 8+ chars, 1 uppercase, 1 number
+ */
+export const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Password must contain at least 1 uppercase letter")
+      .regex(/[0-9]/, "Password must contain at least 1 number"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
+
+/**
+ * Password requirement checker for real-time validation display
+ */
+export function checkPasswordRequirements(password: string): {
+  minLength: boolean;
+  hasUppercase: boolean;
+  hasNumber: boolean;
+} {
+  return {
+    minLength: password.length >= 8,
+    hasUppercase: /[A-Z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+  };
+}
+
 // =============================================================================
 // Utility Functions
 // =============================================================================

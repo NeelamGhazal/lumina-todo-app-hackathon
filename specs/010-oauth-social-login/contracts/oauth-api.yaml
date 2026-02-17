@@ -1,0 +1,193 @@
+openapi: 3.1.0
+info:
+  title: Evolution Todo - OAuth API
+  description: OAuth authentication endpoints for Google and GitHub social login
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000/api
+    description: Local development
+
+paths:
+  /auth/oauth:
+    post:
+      summary: OAuth Login/Signup
+      description: |
+        Creates a new user or links OAuth provider to existing user based on email.
+        Called by frontend after successful OAuth provider authentication.
+
+        **Account Linking Logic:**
+        - If email exists: Link OAuth provider to existing account
+        - If email not found: Create new OAuth-only user (no password)
+      operationId: oauthLogin
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OAuthLoginRequest'
+            examples:
+              google:
+                summary: Google OAuth login
+                value:
+                  provider: google
+                  provider_id: "117234567890123456789"
+                  email: "user@gmail.com"
+                  name: "John Doe"
+                  image_url: "https://lh3.googleusercontent.com/..."
+              github:
+                summary: GitHub OAuth login
+                value:
+                  provider: github
+                  provider_id: "12345678"
+                  email: "developer@example.com"
+                  name: "Jane Dev"
+                  image_url: "https://avatars.githubusercontent.com/u/12345678"
+      responses:
+        '200':
+          description: Successfully authenticated (existing or new user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthLoginResponse'
+              examples:
+                new_user:
+                  summary: New user created
+                  value:
+                    access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    token_type: "bearer"
+                    user:
+                      id: "550e8400-e29b-41d4-a716-446655440000"
+                      email: "user@gmail.com"
+                      name: "John Doe"
+                      is_new_user: true
+                linked_user:
+                  summary: OAuth linked to existing account
+                  value:
+                    access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    token_type: "bearer"
+                    user:
+                      id: "550e8400-e29b-41d4-a716-446655440000"
+                      email: "user@gmail.com"
+                      name: "John Doe"
+                      is_new_user: false
+        '400':
+          description: Invalid request (missing fields or invalid provider)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "INVALID_PROVIDER"
+                message: "Provider must be 'google' or 'github'"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "OAUTH_ERROR"
+                message: "Failed to process OAuth login"
+
+components:
+  schemas:
+    OAuthLoginRequest:
+      type: object
+      required:
+        - provider
+        - provider_id
+        - email
+      properties:
+        provider:
+          type: string
+          enum: [google, github]
+          description: OAuth provider name
+          example: google
+        provider_id:
+          type: string
+          description: Unique user ID from the OAuth provider
+          example: "117234567890123456789"
+        email:
+          type: string
+          format: email
+          description: User's email address from OAuth provider
+          example: "user@gmail.com"
+        name:
+          type: string
+          nullable: true
+          description: User's display name from OAuth provider
+          example: "John Doe"
+        image_url:
+          type: string
+          format: uri
+          nullable: true
+          description: User's profile image URL from OAuth provider
+          example: "https://lh3.googleusercontent.com/..."
+
+    OAuthLoginResponse:
+      type: object
+      required:
+        - access_token
+        - token_type
+        - user
+      properties:
+        access_token:
+          type: string
+          description: JWT access token for API authentication
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        token_type:
+          type: string
+          enum: [bearer]
+          description: Token type (always 'bearer')
+          example: bearer
+        user:
+          $ref: '#/components/schemas/OAuthUser'
+
+    OAuthUser:
+      type: object
+      required:
+        - id
+        - email
+        - is_new_user
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: User's unique identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "user@gmail.com"
+        name:
+          type: string
+          nullable: true
+          description: User's display name
+          example: "John Doe"
+        is_new_user:
+          type: boolean
+          description: True if user was just created, false if existing user
+          example: true
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "INVALID_PROVIDER"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Provider must be 'google' or 'github'"
+
+tags:
+  - name: Authentication
+    description: OAuth authentication endpoints

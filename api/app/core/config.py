@@ -37,6 +37,18 @@ class Settings(BaseSettings):
     def is_development(self) -> bool:
         return self.environment == "development"
 
+    # Password Reset (Resend Email Service)
+    resend_api_key: str | None = None
+    password_reset_from_email: str = "noreply@lumina-todo.com"
+    password_reset_token_expiry_minutes: int = 15
+    password_reset_max_requests_per_hour: int = 3
+
+    @property
+    def primary_frontend_url(self) -> str:
+        """Get primary frontend URL for reset link generation."""
+        # Use first URL from comma-separated list
+        return self.cors_origins[0] if self.cors_origins else "http://localhost:3000"
+
 
 @lru_cache
 def get_settings() -> Settings:

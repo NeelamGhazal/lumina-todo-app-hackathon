@@ -1,5 +1,8 @@
 """Security utilities for authentication and password hashing."""
 
+import hashlib
+import re
+import secrets
 from datetime import UTC, datetime, timedelta
 
 import bcrypt
@@ -51,3 +54,41 @@ def decode_access_token(token: str) -> str | None:
         return user_id
     except JWTError:
         return None
+
+
+# Password Reset Token Functions
+
+
+def generate_reset_token() -> str:
+    """Generate a cryptographically secure reset token (256-bit entropy)."""
+    return secrets.token_urlsafe(32)
+
+
+def hash_reset_token(token: str) -> str:
+    """Hash a reset token using SHA-256."""
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def verify_reset_token(token: str, token_hash: str) -> bool:
+    """Verify a reset token against its hash using constant-time comparison."""
+    return secrets.compare_digest(hash_reset_token(token), token_hash)
+
+
+def validate_password_strength(password: str) -> list[str]:
+    """
+    Validate password meets security requirements.
+    Returns list of validation errors (empty if valid).
+
+    Requirements:
+    - Minimum 8 characters
+    - At least 1 uppercase letter
+    - At least 1 number
+    """
+    errors = []
+    if len(password) < 8:
+        errors.append("Password must be at least 8 characters")
+    if not re.search(r"[A-Z]", password):
+        errors.append("Password must contain at least 1 uppercase letter")
+    if not re.search(r"[0-9]", password):
+        errors.append("Password must contain at least 1 number")
+    return errors

@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import get_settings
 from app.core.database import init_db
+from app.jobs.scheduler import shutdown_scheduler, start_scheduler
 from app.routers import auth_router, chat_router, notifications_router, tasks_router
 
 # Configure logging
@@ -32,8 +33,25 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.error(f"Database initialization failed: {e}")
         logger.error(traceback.format_exc())
         # Continue anyway to allow diagnostic endpoints to work
+
+    # Startup: initialize scheduler
+    try:
+        logger.info("Starting notification scheduler...")
+        start_scheduler()
+        logger.info("Scheduler started successfully")
+    except Exception as e:
+        logger.error(f"Scheduler initialization failed: {e}")
+        logger.error(traceback.format_exc())
+
     yield
-    # Shutdown: cleanup if needed
+
+    # Shutdown: stop scheduler
+    try:
+        logger.info("Stopping scheduler...")
+        shutdown_scheduler()
+        logger.info("Scheduler stopped successfully")
+    except Exception as e:
+        logger.error(f"Scheduler shutdown failed: {e}")
 
 
 app = FastAPI(

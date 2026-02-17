@@ -3,6 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, status
+from pydantic import BaseModel
 from sqlmodel import select, func
 
 from app.core.deps import CurrentUser, DbSession
@@ -13,6 +14,13 @@ from app.schemas.notification import (
     NotificationResponse,
     UnreadCountResponse,
 )
+
+
+class TriggerJobResponse(BaseModel):
+    """Response from manual job trigger."""
+
+    dueSoonCount: int
+    overdueCount: int
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
@@ -131,3 +139,21 @@ async def clear_all_notifications(
         await session.delete(notification)
 
     return ClearNotificationsResponse(success=True, deletedCount=deleted_count)
+
+
+@router.post("/trigger-job", response_model=TriggerJobResponse)
+async def trigger_notification_job(
+    current_user: CurrentUser,
+) -> TriggerJobResponse:
+    """Manually trigger the notification generation job.
+
+    This endpoint is for testing purposes to verify cron job logic works.
+    Generates due-soon and overdue notifications for all users.
+    """
+    from app.jobs.scheduler import trigger_notification_job_manually
+
+    result = await trigger_notification_job_manually()
+    return TriggerJobResponse(
+        dueSoonCount=result["due_soon_count"],
+        overdueCount=result["overdue_count"],
+    )

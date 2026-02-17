@@ -5,19 +5,31 @@
 
 import { apiClient, setAuthToken, clearAuthToken, getAuthToken } from "./client";
 import type {
+  ClearNotificationsResponse,
   CreateTaskRequest,
   CreateTaskResponse,
   DeleteTaskResponse,
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
   ListTasksParams,
   ListTasksResponse,
   LoginRequest,
   LoginResponse,
+  Notification,
+  NotificationListResponse,
+  OAuthLoginRequest,
+  OAuthLoginResponse,
   RegisterRequest,
   RegisterResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
   SessionResponse,
   ToggleCompleteResponse,
+  TriggerJobResponse,
+  UnreadCountResponse,
   UpdateTaskRequest,
   UpdateTaskResponse,
+  VerifyTokenResponse,
 } from "@/types/api";
 
 // =============================================================================
@@ -74,6 +86,45 @@ export const authApi = {
    */
   hasToken: (): boolean => {
     return getAuthToken() !== null;
+  },
+
+  /**
+   * Request password reset email
+   * Always returns same response to prevent email enumeration
+   */
+  forgotPassword: async (data: ForgotPasswordRequest): Promise<ForgotPasswordResponse> => {
+    return apiClient.post<ForgotPasswordResponse>("/auth/forgot-password", data);
+  },
+
+  /**
+   * Verify reset token validity
+   * Returns token status and user email if valid
+   */
+  verifyResetToken: async (token: string): Promise<VerifyTokenResponse> => {
+    return apiClient.get<VerifyTokenResponse>(`/auth/verify-reset-token/${token}`);
+  },
+
+  /**
+   * Reset password with valid token
+   * Sets new password and invalidates token
+   */
+  resetPassword: async (data: ResetPasswordRequest): Promise<ResetPasswordResponse> => {
+    return apiClient.post<ResetPasswordResponse>("/auth/reset-password", data);
+  },
+
+  /**
+   * OAuth login/signup
+   * Creates new user or links OAuth provider to existing account
+   * Called by NextAuth after successful OAuth flow
+   * Per specs/010-oauth-social-login/contracts/oauth-api.yaml
+   */
+  oauthLogin: async (data: OAuthLoginRequest): Promise<OAuthLoginResponse> => {
+    const response = await apiClient.post<OAuthLoginResponse>("/auth/oauth", data);
+    // Store token for subsequent requests
+    if (response.access_token) {
+      setAuthToken(response.access_token);
+    }
+    return response;
   },
 };
 
@@ -179,6 +230,51 @@ export const chatApi = {
 };
 
 // =============================================================================
+// Notification Endpoints
+// =============================================================================
+
+export const notificationsApi = {
+  /**
+   * List notifications for the authenticated user
+   * Returns notifications sorted by created_at DESC (newest first)
+   */
+  list: async (limit?: number, unreadOnly?: boolean): Promise<NotificationListResponse> => {
+    const params: Record<string, string | number | boolean> = {};
+    if (limit !== undefined) params.limit = limit;
+    if (unreadOnly !== undefined) params.unreadOnly = unreadOnly;
+    return apiClient.get<NotificationListResponse>("/notifications", params);
+  },
+
+  /**
+   * Get unread notification count (lightweight endpoint for polling)
+   */
+  getUnreadCount: async (): Promise<UnreadCountResponse> => {
+    return apiClient.get<UnreadCountResponse>("/notifications/unread-count");
+  },
+
+  /**
+   * Mark a single notification as read
+   */
+  markAsRead: async (id: string): Promise<Notification> => {
+    return apiClient.patch<Notification>(`/notifications/${id}/read`);
+  },
+
+  /**
+   * Clear all notifications for the current user
+   */
+  clearAll: async (): Promise<ClearNotificationsResponse> => {
+    return apiClient.delete<ClearNotificationsResponse>("/notifications");
+  },
+
+  /**
+   * Manually trigger the notification generation job (for testing)
+   */
+  triggerJob: async (): Promise<TriggerJobResponse> => {
+    return apiClient.post<TriggerJobResponse>("/notifications/trigger-job");
+  },
+};
+
+// =============================================================================
 // Export all APIs
 // =============================================================================
 
@@ -186,6 +282,7 @@ export const api = {
   auth: authApi,
   tasks: tasksApi,
   chat: chatApi,
+  notifications: notificationsApi,
 };
 
 export default api;

@@ -114,9 +114,9 @@ uv run pytest api/tests/test_notifications.py -v
 
 **Purpose**: Hourly cron for notification generation, daily cleanup
 
-- [ ] T010 Add APScheduler dependency to `api/pyproject.toml`
+- [x] T010 Add APScheduler dependency to `api/pyproject.toml`
   - `apscheduler>=3.10.0` (async compatible)
-- [ ] T011 Create scheduler module in `api/app/jobs/scheduler.py`
+- [x] T011 Create scheduler module in `api/app/jobs/scheduler.py`
   - Initialize AsyncIOScheduler
   - Job: `generate_task_notifications` - runs hourly (`0 * * * *`)
     - Calls generate_due_soon_notifications()
@@ -125,14 +125,14 @@ uv run pytest api/tests/test_notifications.py -v
   - Job: `cleanup_old_notifications` - runs daily at midnight (`0 0 * * *`)
     - Calls cleanup_old_notifications(days=30)
     - Logs count of notifications deleted
-- [ ] T012 **[TESTABILITY]** Add manual trigger endpoint in `api/app/routers/notifications.py`
+- [x] T012 **[TESTABILITY]** Add manual trigger endpoint in `api/app/routers/notifications.py`
   - POST `/api/notifications/trigger-job` (for testing only)
   - Manually runs generate_task_notifications job
   - Returns { "due_soon_count": X, "overdue_count": Y }
-- [ ] T013 Integrate scheduler in `api/app/main.py` lifespan handler
+- [x] T013 Integrate scheduler in `api/app/main.py` lifespan handler
   - Start scheduler on app startup
   - Shutdown scheduler on app shutdown
-- [ ] T014 Add scheduler tests in `api/tests/test_scheduler.py`
+- [x] T014 Add scheduler tests in `api/tests/test_scheduler.py`
   - test_scheduler_starts_with_app
   - test_manual_trigger_creates_notifications
   - test_no_duplicate_notifications_on_repeated_trigger
@@ -184,7 +184,7 @@ uv run pytest api/tests/ -v
 
 **Purpose**: Generate TASK_COMPLETED notification on task toggle
 
-- [ ] T015 [US7] Modify task toggle endpoint in `api/app/routers/tasks.py`
+- [x] T015 [US7] Modify task toggle endpoint in `api/app/routers/tasks.py`
   - After `task.completed = True`, call:
     ```python
     await create_notification(
@@ -195,7 +195,7 @@ uv run pytest api/tests/ -v
         task_id=task.id
     )
     ```
-- [ ] T016 [US7] Add test in `api/tests/test_tasks.py`
+- [x] T016 [US7] Add test in `api/tests/test_tasks.py`
   - test_complete_task_creates_notification
 
 **Verification**: Complete a task via API, verify notification appears
@@ -206,14 +206,14 @@ uv run pytest api/tests/ -v
 
 **Purpose**: TypeScript types and API client functions
 
-- [ ] T017 [P] Add notification types in `frontend/src/types/api.ts`
+- [x] T017 [P] Add notification types in `frontend/src/types/api.ts`
   ```typescript
   type NotificationType = 'TASK_DUE_SOON' | 'TASK_OVERDUE' | 'TASK_COMPLETED'
   interface Notification { id, userId, taskId?, type, message, isRead, createdAt }
   interface NotificationListResponse { notifications, total, unreadCount }
   interface UnreadCountResponse { count }
   ```
-- [ ] T018 [P] Add API functions in `frontend/src/lib/api/endpoints.ts`
+- [x] T018 [P] Add API functions in `frontend/src/lib/api/endpoints.ts`
   - getNotifications(limit?: number): Promise<NotificationListResponse>
   - getUnreadCount(): Promise<UnreadCountResponse>
   - markNotificationRead(id: string): Promise<void>
@@ -227,7 +227,7 @@ uv run pytest api/tests/ -v
 
 ### Notification Item Component
 
-- [ ] T019 [P] [US2,US3] Create `frontend/src/components/notifications/notification-item.tsx`
+- [x] T019 [P] [US2,US3] Create `frontend/src/components/notifications/notification-item.tsx`
   - Props: notification, onMarkRead
   - Display: type icon, message, relative timestamp
   - Visual distinction: unread = bold/highlighted, read = muted
@@ -236,7 +236,7 @@ uv run pytest api/tests/ -v
 
 ### Notification Dropdown Component
 
-- [ ] T020 [P] [US2,US4] Create `frontend/src/components/notifications/notification-dropdown.tsx`
+- [x] T020 [P] [US2,US4] Create `frontend/src/components/notifications/notification-dropdown.tsx`
   - Props: notifications, unreadCount, onMarkRead, onClearAll, isLoading
   - Header with "Notifications" title and "Clear all" button
   - Scrollable list (max-height ~400px)
@@ -246,7 +246,7 @@ uv run pytest api/tests/ -v
 
 ### Notification Bell Component
 
-- [ ] T021 [US1,US2] Create `frontend/src/components/notifications/notification-bell.tsx`
+- [x] T021 [US1,US2] Create `frontend/src/components/notifications/notification-bell.tsx`
   - Bell icon from lucide-react
   - Badge with unread count (hide if 0, show "99+" if >99)
   - Click handler: toggle dropdown open/close
@@ -255,8 +255,8 @@ uv run pytest api/tests/ -v
 
 ### Integration
 
-- [ ] T022 [US1] Create `frontend/src/components/notifications/index.ts` barrel export
-- [ ] T023 [US1] Add NotificationBell to dashboard header in `frontend/src/components/layout/dashboard-header.tsx`
+- [x] T022 [US1] Create `frontend/src/components/notifications/index.ts` barrel export
+- [x] T023 [US1] Add NotificationBell to dashboard header in `frontend/src/components/layout/dashboard-header.tsx`
   - Position: right side of navbar, before user menu
 
 ---
@@ -285,7 +285,7 @@ cd frontend && npm run dev
 
 **Purpose**: Auto-refresh unread count every 30 seconds
 
-- [ ] T024 [US1] Create `frontend/src/hooks/use-notifications.ts`
+- [x] T024 [US1] Create `frontend/src/hooks/use-notifications.ts`
   ```typescript
   function useNotifications() {
     // State
@@ -305,11 +305,11 @@ cd frontend && npm run dev
     // Cleanup: stop polling on unmount or logout
   }
   ```
-- [ ] T025 [US1] Wire useNotifications hook to NotificationBell component
+- [x] T025 [US1] Wire useNotifications hook to NotificationBell component
   - Pass notifications, unreadCount to dropdown
   - Handle loading states
   - Handle errors gracefully (silent retry)
-- [ ] T026 [US1] Stop polling when user is not authenticated
+- [x] T026 [US1] Stop polling when user is not authenticated
   - Check auth state before polling
   - Clear notifications on logout
 
@@ -321,38 +321,38 @@ cd frontend && npm run dev
 
 ### E2E Testing
 
-- [ ] T027 [US5] E2E Test: Due-soon notification flow
+- [x] T027 [US5] E2E Test: Due-soon notification flow
   1. Create task due tomorrow
   2. Trigger job manually
   3. Verify notification appears in dropdown within 30s
   4. Verify badge count updated
 
-- [ ] T028 [US6] E2E Test: Overdue notification flow
+- [x] T028 [US6] E2E Test: Overdue notification flow
   1. Create task with yesterday's due date
   2. Trigger job manually
   3. Verify overdue notification appears
   4. Trigger again - verify NO duplicate
 
-- [ ] T029 [US7] E2E Test: Task completion notification
+- [x] T029 [US7] E2E Test: Task completion notification
   1. Complete a task
   2. Verify completion notification appears immediately
   3. Verify badge updates
 
 ### Edge Cases
 
-- [ ] T030 Handle deleted tasks: notification message shows task no longer exists
-- [ ] T031 Handle 99+ notifications: badge displays "99+"
-- [ ] T032 Optimistic UI updates for mark-as-read
+- [x] T030 Handle deleted tasks: notification message shows task no longer exists
+- [x] T031 Handle 99+ notifications: badge displays "99+"
+- [x] T032 Optimistic UI updates for mark-as-read
 
 ### Final Verification
 
-- [ ] T033 Run full test suite
+- [x] T033 Run full test suite
   ```bash
   uv run pytest api/tests/ -v
   ```
-- [ ] T034 Run quickstart.md validation
-- [ ] T035 Verify polling interval is exactly 30 seconds
-- [ ] T036 Verify dropdown opens within 500ms (SC-002)
+- [x] T034 Run quickstart.md validation
+- [x] T035 Verify polling interval is exactly 30 seconds
+- [x] T036 Verify dropdown opens within 500ms (SC-002)
 
 ---
 

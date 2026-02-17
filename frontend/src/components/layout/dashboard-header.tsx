@@ -1,11 +1,12 @@
 "use client";
 
-import { Menu, Search, Bell } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { UserMenu } from "./user-menu";
 import { Input } from "@/components/ui/input";
+import { NotificationBell } from "@/components/notifications";
 
 export interface DashboardHeaderProps {
   userName?: string;
@@ -32,11 +33,6 @@ export function DashboardHeader({
     });
   };
 
-  const handleNotificationClick = () => {
-    toast.info("Notifications coming soon!", {
-      description: "We're working on adding notifications.",
-    });
-  };
 
   return (
     <header
@@ -81,16 +77,8 @@ export function DashboardHeader({
           <Search className="h-5 w-5" />
         </button>
 
-        {/* T055: Notification bell (visual only) - T083: min 44px touch target */}
-        <button
-          onClick={handleNotificationClick}
-          className="relative p-2.5 rounded-lg hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="Notifications"
-        >
-          <Bell className="h-5 w-5" />
-          {/* Notification dot */}
-          <span className="absolute top-2 right-2 w-2 h-2 bg-lumina-primary-500 rounded-full" />
-        </button>
+        {/* T055: Notification bell with dropdown */}
+        <NotificationBell />
 
         {/* T054: Theme toggle */}
         <ThemeToggle size="sm" />
