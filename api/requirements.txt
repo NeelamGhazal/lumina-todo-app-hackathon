@@ -18,3 +18,12 @@ pydantic[email]==2.9.2
 
 # Utilities
 python-dotenv==1.0.0
+
+# Background Jobs & Scheduling
+apscheduler>=3.10.0
+
+# Email (for notifications)
+resend>=2.0.0
+
+# HTTP Client
+httpx>=0.28.0
