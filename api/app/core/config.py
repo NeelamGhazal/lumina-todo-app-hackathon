@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     def is_development(self) -> bool:
         return self.environment == "development"
 
+    # Chat Agent (Part 2 OpenRouter Agent)
+    agent_base_url: str = "http://localhost:8001"
+
     # Password Reset (Resend Email Service)
     resend_api_key: str | None = None
     password_reset_from_email: str = "noreply@lumina-todo.com"

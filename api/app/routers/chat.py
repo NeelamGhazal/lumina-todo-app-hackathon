@@ -28,8 +28,8 @@ from app.core.deps import CurrentUser, DbSession
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-# Part 2 OpenRouter Agent base URL (port 8001 per spec)
-AGENT_BASE_URL = "http://localhost:8001"
+# Part 2 OpenRouter Agent settings
+AGENT_BASE_URL = settings.agent_base_url
 AGENT_TIMEOUT = 30.0  # 30 second timeout for AI responses
 
 router = APIRouter(prefix="/chat", tags=["chat"])
