@@ -4,7 +4,31 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { sendMessage as sendChatMessage, getHistory } from "@/lib/api/chat";
 import { ApiClientError } from "@/lib/api/client";
-import type { Message, ChatState } from "@/types/chat";
+import type { Message, ChatState, ChatResponse } from "@/types/chat";
+
+// Task-related tool names that should trigger a task list refresh
+const TASK_TOOLS = ["add_task", "delete_task", "update_task", "complete_task"];
+
+/**
+ * Check if chat response contains successful task-related tool calls
+ */
+function hasTaskToolCalls(response: ChatResponse): boolean {
+  if (!response.tool_calls || response.tool_calls.length === 0) {
+    return false;
+  }
+  return response.tool_calls.some(
+    (tc) => TASK_TOOLS.includes(tc.tool) && tc.success
+  );
+}
+
+/**
+ * Dispatch event to notify task list to refresh
+ */
+function notifyTasksUpdated(): void {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("tasks-updated"));
+  }
+}
 
 const POLLING_INTERVAL = 3000; // 3 seconds
 
@@ -138,6 +162,11 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
 
       setMessages((prev) => [...prev, aiMessage]);
       lastFailedMessageRef.current = null;
+
+      // If AI performed task operations, notify task list to refresh
+      if (hasTaskToolCalls(response)) {
+        notifyTasksUpdated();
+      }
     } catch (err) {
       // Mark message as failed
       setMessages((prev) =>
