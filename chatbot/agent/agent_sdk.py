@@ -14,6 +14,7 @@ References:
 
 import json
 from typing import Any
+from uuid import UUID
 
 import structlog
 from openai import AsyncOpenAI
