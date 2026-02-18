@@ -164,7 +164,13 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       lastFailedMessageRef.current = null;
 
       // If AI performed task operations, notify task list to refresh
+      // DEBUG: Log response to verify tool_calls are received
+      console.log("[ChatKit] Response received:", JSON.stringify(response));
+      console.log("[ChatKit] tool_calls:", response.tool_calls);
+      console.log("[ChatKit] hasTaskToolCalls:", hasTaskToolCalls(response));
+
       if (hasTaskToolCalls(response)) {
+        console.log("[ChatKit] Dispatching tasks-updated event");
         notifyTasksUpdated();
       }
     } catch (err) {

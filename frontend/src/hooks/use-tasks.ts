@@ -418,9 +418,11 @@ export function useTasks(): UseTasksReturn {
   // Listen for task updates from chat widget
   useEffect(() => {
     const handleTasksUpdated = () => {
+      console.log("[TaskList] tasks-updated event received, refreshing...");
       fetchTasks();
     };
     window.addEventListener("tasks-updated", handleTasksUpdated);
+    console.log("[TaskList] Event listener registered for tasks-updated");
     return () => {
       window.removeEventListener("tasks-updated", handleTasksUpdated);
     };

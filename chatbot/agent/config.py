@@ -29,7 +29,7 @@ class AgentSettings(BaseSettings):
 
     # OpenRouter Configuration
     openrouter_api_key: str = ""
-    agent_model: str = "gpt-4o-mini"
+    agent_model: str = "openai/gpt-4o-mini"
 
     # MCP Server URL (for tool execution)
     mcp_server_url: str = "http://localhost:8001"
