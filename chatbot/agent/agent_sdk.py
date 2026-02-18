@@ -14,14 +14,20 @@ References:
 
 import json
 from typing import Any
-from uuid import UUID
 
 import structlog
 from openai import AsyncOpenAI
 from agents import Agent, Runner, set_default_openai_client, function_tool
 
 from agent.config import get_agent_settings
-from agent.tools import execute_mcp_tool, MCPToolError, format_tool_error_for_user
+from agent.api_client import (
+    api_create_task,
+    api_list_tasks,
+    api_complete_task,
+    api_delete_task,
+    api_update_task,
+    APIClientError,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -97,64 +103,52 @@ async def add_task(
         JSON string with task creation result
     """
     context = _get_current_context()
-    user_id = context.get("user_id")
+    auth_token = context.get("auth_token")
 
-    if not user_id:
-        return json.dumps({"error": "No user context available"})
+    if not auth_token:
+        return json.dumps({"error": "Authentication required. Please log in again."})
 
     # Validate title
     if not title or not title.strip():
         return json.dumps({"error": "Task title is required"})
 
     try:
-        # Build parameters - ONLY include explicitly provided fields
-        params: dict[str, Any] = {"title": title.strip()}
+        # Validate priority
+        p = priority.strip().lower() if priority else "medium"
+        if p not in ("high", "medium", "low"):
+            return json.dumps({"error": f"Invalid priority '{priority}'. Must be high, medium, or low."})
 
-        # Description - only if provided and not empty
-        if description and description.strip():
-            params["description"] = description.strip()
+        # Validate category
+        c = category.strip().lower() if category else "personal"
+        if c not in ("work", "personal", "shopping", "health", "other"):
+            return json.dumps({"error": f"Invalid category '{category}'. Must be work, personal, shopping, health, or other."})
 
-        # Priority - validate strictly
-        if priority and priority.strip():
-            p = priority.strip().lower()
-            if p in ("high", "medium", "low"):
-                params["priority"] = p
-            else:
-                return json.dumps({"error": f"Invalid priority '{priority}'. Must be high, medium, or low."})
+        # Validate date format
+        d = due_date.strip() if due_date else None
+        if d and not (len(d) == 10 and d[4] == '-' and d[7] == '-'):
+            return json.dumps({"error": f"Invalid date format '{due_date}'. Use YYYY-MM-DD."})
 
-        # Category - validate strictly
-        if category and category.strip():
-            c = category.strip().lower()
-            if c in ("work", "personal", "shopping", "health", "other"):
-                params["category"] = c
-            else:
-                return json.dumps({"error": f"Invalid category '{category}'. Must be work, personal, shopping, health, or other."})
+        # Validate time format
+        t = due_time.strip() if due_time else None
+        if t and not (len(t) == 5 and t[2] == ':'):
+            return json.dumps({"error": f"Invalid time format '{due_time}'. Use HH:MM."})
 
-        # Tags - parse comma-separated
-        if tags and tags.strip():
-            params["tags"] = [t.strip() for t in tags.split(",") if t.strip()]
+        # Parse tags
+        tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()] if tags else None
 
-        # Due date - validate format
-        if due_date and due_date.strip():
-            d = due_date.strip()
-            # Basic format check
-            if len(d) == 10 and d[4] == '-' and d[7] == '-':
-                params["due_date"] = d
-            else:
-                return json.dumps({"error": f"Invalid date format '{due_date}'. Use YYYY-MM-DD."})
-
-        # Due time - validate format
-        if due_time and due_time.strip():
-            t = due_time.strip()
-            if len(t) == 5 and t[2] == ':':
-                params["due_time"] = t
-            else:
-                return json.dumps({"error": f"Invalid time format '{due_time}'. Use HH:MM."})
-
-        result = await execute_mcp_tool("add_task", params, UUID(user_id))
+        result = await api_create_task(
+            auth_token=auth_token,
+            title=title.strip(),
+            description=description.strip() if description else None,
+            priority=p,
+            category=c,
+            tags=tag_list,
+            due_date=d,
+            due_time=t,
+        )
         return json.dumps(result)
-    except MCPToolError as e:
-        return json.dumps({"error": format_tool_error_for_user(e)})
+    except APIClientError as e:
+        return json.dumps({"error": e.message})
 
 
 @function_tool
@@ -168,20 +162,19 @@ async def list_tasks(status: str = "all") -> str:
         JSON string with list of tasks
     """
     context = _get_current_context()
-    user_id = context.get("user_id")
+    auth_token = context.get("auth_token")
 
-    if not user_id:
-        return json.dumps({"error": "No user context available"})
+    if not auth_token:
+        return json.dumps({"error": "Authentication required. Please log in again."})
 
     try:
-        result = await execute_mcp_tool(
-            "list_tasks",
-            {"status": status},
-            UUID(user_id),
+        result = await api_list_tasks(
+            auth_token=auth_token,
+            status=status,
         )
         return json.dumps(result)
-    except MCPToolError as e:
-        return json.dumps({"error": format_tool_error_for_user(e)})
+    except APIClientError as e:
+        return json.dumps({"error": e.message})
 
 
 @function_tool
@@ -195,20 +188,19 @@ async def complete_task(task_id: str) -> str:
         JSON string with completion result
     """
     context = _get_current_context()
-    user_id = context.get("user_id")
+    auth_token = context.get("auth_token")
 
-    if not user_id:
-        return json.dumps({"error": "No user context available"})
+    if not auth_token:
+        return json.dumps({"error": "Authentication required. Please log in again."})
 
     try:
-        result = await execute_mcp_tool(
-            "complete_task",
-            {"task_id": task_id},
-            UUID(user_id),
+        result = await api_complete_task(
+            auth_token=auth_token,
+            task_id=task_id,
         )
         return json.dumps(result)
-    except MCPToolError as e:
-        return json.dumps({"error": format_tool_error_for_user(e)})
+    except APIClientError as e:
+        return json.dumps({"error": e.message})
 
 
 @function_tool
@@ -222,20 +214,19 @@ async def delete_task(task_id: str) -> str:
         JSON string with deletion result
     """
     context = _get_current_context()
-    user_id = context.get("user_id")
+    auth_token = context.get("auth_token")
 
-    if not user_id:
-        return json.dumps({"error": "No user context available"})
+    if not auth_token:
+        return json.dumps({"error": "Authentication required. Please log in again."})
 
     try:
-        result = await execute_mcp_tool(
-            "delete_task",
-            {"task_id": task_id},
-            UUID(user_id),
+        result = await api_delete_task(
+            auth_token=auth_token,
+            task_id=task_id,
         )
         return json.dumps(result)
-    except MCPToolError as e:
-        return json.dumps({"error": format_tool_error_for_user(e)})
+    except APIClientError as e:
+        return json.dumps({"error": e.message})
 
 
 @function_tool
@@ -277,56 +268,53 @@ async def update_task(
         JSON string with update result
     """
     context = _get_current_context()
-    user_id = context.get("user_id")
+    auth_token = context.get("auth_token")
 
-    if not user_id:
-        return json.dumps({"error": "No user context available"})
+    if not auth_token:
+        return json.dumps({"error": "Authentication required. Please log in again."})
 
-    # STRICT: Only include fields that were explicitly provided
-    args: dict[str, Any] = {"task_id": task_id}
+    # Build update params - only include provided fields
+    update_title = title.strip() if title and title.strip() else None
+    update_description = description.strip() if description and description.strip() else None
+    update_priority = priority.strip().lower() if priority and priority.strip().lower() in ("high", "medium", "low") else None
+    update_category = category.strip().lower() if category and category.strip().lower() in ("work", "personal", "shopping", "health", "other") else None
+    update_tags = [t.strip() for t in tags.split(",") if t.strip()] if tags and tags.strip() else None
+    update_due_date = due_date.strip() if due_date and due_date.strip() else None
+    update_due_time = due_time.strip() if due_time and due_time.strip() else None
 
-    # Only add fields if they have actual values
-    if title and title.strip():
-        args["title"] = title.strip()
-
-    if description and description.strip():
-        args["description"] = description.strip()
-
-    if priority and priority.strip().lower() in ("high", "medium", "low"):
-        args["priority"] = priority.strip().lower()
-
-    if category and category.strip().lower() in ("work", "personal", "shopping", "health", "other"):
-        args["category"] = category.strip().lower()
-
-    if tags and tags.strip():
-        args["tags"] = [t.strip() for t in tags.split(",") if t.strip()]
-
-    if due_date and due_date.strip():
-        args["due_date"] = due_date.strip()
-
-    if due_time and due_time.strip():
-        args["due_time"] = due_time.strip()
-
-    # Clear flags
-    if clear_due_date:
-        args["clear_due_date"] = True
-
-    if clear_due_time:
-        args["clear_due_time"] = True
-
+    # Handle clear flags by setting to empty string (API will interpret as clearing)
     if clear_description:
-        args["clear_description"] = True
+        update_description = ""
+    if clear_due_date:
+        update_due_date = ""
+    if clear_due_time:
+        update_due_time = ""
 
-    # Validate that at least one update field is provided
-    update_fields = [k for k in args.keys() if k != "task_id"]
-    if not update_fields:
+    # Check if any updates provided
+    has_updates = any([
+        update_title, update_description is not None, update_priority,
+        update_category, update_tags, update_due_date is not None,
+        update_due_time is not None
+    ])
+
+    if not has_updates:
         return json.dumps({"error": "No fields to update. Please specify what you want to change."})
 
     try:
-        result = await execute_mcp_tool("update_task", args, UUID(user_id))
+        result = await api_update_task(
+            auth_token=auth_token,
+            task_id=task_id,
+            title=update_title,
+            description=update_description,
+            priority=update_priority,
+            category=update_category,
+            tags=update_tags,
+            due_date=update_due_date,
+            due_time=update_due_time,
+        )
         return json.dumps(result)
-    except MCPToolError as e:
-        return json.dumps({"error": format_tool_error_for_user(e)})
+    except APIClientError as e:
+        return json.dumps({"error": e.message})
 
 
 # === Context Management ===
@@ -431,6 +419,7 @@ async def run_agent(
     message: str,
     user_id: UUID,
     conversation_history: list[dict[str, str]] | None = None,
+    auth_token: str | None = None,
 ) -> tuple[str, list[dict[str, Any]]]:
     """Run the agent with a user message.
 
@@ -450,8 +439,11 @@ async def run_agent(
 
     agent = get_todo_agent()
 
-    # Set user context for tool execution
-    token = _set_current_context({"user_id": str(user_id)})
+    # Set user context for tool execution (includes auth token for API calls)
+    token = _set_current_context({
+        "user_id": str(user_id),
+        "auth_token": auth_token,
+    })
 
     try:
         # Build input with conversation context

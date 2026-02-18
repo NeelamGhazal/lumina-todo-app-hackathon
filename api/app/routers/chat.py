@@ -19,11 +19,12 @@ from typing import Any
 from uuid import UUID
 
 import httpx
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Header, HTTPException, status
 from pydantic import BaseModel, Field
 
 from app.core.config import get_settings
 from app.core.deps import CurrentUser, DbSession
+from typing import Annotated
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -129,6 +130,7 @@ async def chat_health_check() -> dict[str, Any]:
 async def send_message(
     request: ChatRequest,
     current_user: CurrentUser,
+    authorization: Annotated[str | None, Header()] = None,
 ) -> ChatResponse:
     """Send message to AI assistant via Part 2 OpenRouter Agent.
 
@@ -168,9 +170,15 @@ async def send_message(
                 payload["conversation_id"] = request.conversation_id
 
             # Forward to Part 2 agent at /api/{user_id}/chat (hackathon spec)
+            # Pass Authorization header so chatbot can call our API endpoints
+            headers = {}
+            if authorization:
+                headers["Authorization"] = authorization
+
             response = await client.post(
                 f"{AGENT_BASE_URL}/api/{user_id}/chat",
                 json=payload,
+                headers=headers,
             )
 
             if response.status_code == 503:

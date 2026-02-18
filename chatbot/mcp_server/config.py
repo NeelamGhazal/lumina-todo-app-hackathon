@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     # Session timeout (minutes) for conversation lifecycle
     session_timeout_minutes: int = 30
 
+    # Part 1 API URL (for task CRUD operations)
+    # Tasks are stored in Part 1 API database, not locally
+    api_base_url: str = "http://localhost:8000"
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Get list of CORS origins."""

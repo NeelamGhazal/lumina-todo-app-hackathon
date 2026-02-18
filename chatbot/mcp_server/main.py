@@ -18,7 +18,7 @@ from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 from typing import Any
 
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
@@ -270,6 +270,7 @@ async def chat_endpoint(
     user_id: str,
     request: ChatRequest,
     db: AsyncSession = Depends(get_db),
+    authorization: str | None = Header(None),
 ) -> dict[str, Any]:
     """Send message to agent and get response.
 
@@ -332,6 +333,7 @@ async def chat_endpoint(
             user_id=user_uuid,
             db=db,
             conversation_id=request.conversation_id,
+            auth_token=authorization,
         )
 
         # T003: Debug log - response built

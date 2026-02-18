@@ -33,6 +33,7 @@ async def process_chat(
     user_id: UUID,
     db: AsyncSession,
     conversation_id: UUID | None = None,
+    auth_token: str | None = None,
 ) -> ChatResponse:
     """Process a chat message and return agent response.
 
@@ -87,6 +88,7 @@ async def process_chat(
                 message=message,
                 user_id=user_id,
                 conversation_history=context,
+                auth_token=auth_token,
             )
             response_content = response_text
 
