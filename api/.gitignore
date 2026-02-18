@@ -43,3 +43,8 @@ htmlcov/
 # UV
 .uv/
 uv.lock
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
