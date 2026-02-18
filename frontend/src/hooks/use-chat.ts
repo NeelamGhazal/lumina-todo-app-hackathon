@@ -9,6 +9,23 @@ import type { Message, ChatState, ChatResponse } from "@/types/chat";
 // Task-related tool names that should trigger a task list refresh
 const TASK_TOOLS = ["add_task", "delete_task", "update_task", "complete_task"];
 
+// Fallback: Keywords in AI response that indicate task operations
+const TASK_ACTION_PATTERNS = [
+  /created.*task/i,
+  /added.*task/i,
+  /task.*created/i,
+  /task.*added/i,
+  /deleted.*task/i,
+  /removed.*task/i,
+  /task.*deleted/i,
+  /task.*removed/i,
+  /updated.*task/i,
+  /task.*updated/i,
+  /marked.*complete/i,
+  /completed.*task/i,
+  /task.*completed/i,
+];
+
 /**
  * Check if chat response contains successful task-related tool calls
  */
@@ -19,6 +36,13 @@ function hasTaskToolCalls(response: ChatResponse): boolean {
   return response.tool_calls.some(
     (tc) => TASK_TOOLS.includes(tc.tool) && tc.success
   );
+}
+
+/**
+ * Fallback: Check if AI message indicates task operations were performed
+ */
+function messageIndicatesTaskAction(message: string): boolean {
+  return TASK_ACTION_PATTERNS.some((pattern) => pattern.test(message));
 }
 
 /**
@@ -164,13 +188,20 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       lastFailedMessageRef.current = null;
 
       // If AI performed task operations, notify task list to refresh
-      // DEBUG: Log response to verify tool_calls are received
-      console.log("[ChatKit] Response received:", JSON.stringify(response));
-      console.log("[ChatKit] tool_calls:", response.tool_calls);
-      console.log("[ChatKit] hasTaskToolCalls:", hasTaskToolCalls(response));
+      // Check both tool_calls AND message content (fallback)
+      const hasToolCalls = hasTaskToolCalls(response);
+      const hasMessageIndicator = messageIndicatesTaskAction(response.message);
 
-      if (hasTaskToolCalls(response)) {
-        console.log("[ChatKit] Dispatching tasks-updated event");
+      // DEBUG: Log for troubleshooting
+      console.log("[ChatKit] Response:", {
+        message: response.message.substring(0, 100),
+        tool_calls: response.tool_calls,
+        hasToolCalls,
+        hasMessageIndicator
+      });
+
+      if (hasToolCalls || hasMessageIndicator) {
+        console.log("[ChatKit] Task operation detected, dispatching tasks-updated event");
         notifyTasksUpdated();
       }
     } catch (err) {
