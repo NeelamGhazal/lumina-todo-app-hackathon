@@ -42,7 +42,7 @@ class Settings(BaseSettings):
 
     # Password Reset (Resend Email Service)
     resend_api_key: str | None = None
-    password_reset_from_email: str = "noreply@lumina-todo.com"
+    password_reset_from_email: str = "Lumina Todo <onboarding@resend.dev>"
     password_reset_token_expiry_minutes: int = 15
     password_reset_max_requests_per_hour: int = 3
 
