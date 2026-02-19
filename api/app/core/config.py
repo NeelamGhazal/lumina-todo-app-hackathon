@@ -40,9 +40,18 @@ class Settings(BaseSettings):
     # Chat Agent (Part 2 OpenRouter Agent)
     agent_base_url: str = "http://localhost:8001"
 
-    # Password Reset (Resend Email Service)
+    # Password Reset Email Configuration
+    # Gmail SMTP (recommended - works without domain verification)
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_pass: str | None = None
+
+    # Resend (fallback - requires domain verification for external emails)
     resend_api_key: str | None = None
-    password_reset_from_email: str = "Lumina Todo <onboarding@resend.dev>"
+
+    # Common email settings
+    password_reset_from_email: str = "Lumina Todo <noreply@lumina-todo.com>"
     password_reset_token_expiry_minutes: int = 15
     password_reset_max_requests_per_hour: int = 3
 

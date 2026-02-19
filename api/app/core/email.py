@@ -1,6 +1,9 @@
-"""Email service using Resend for password reset functionality."""
+"""Email service using Gmail SMTP for password reset functionality."""
 
 import logging
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import resend
 
@@ -9,7 +12,7 @@ from app.core.config import get_settings
 settings = get_settings()
 logger = logging.getLogger(__name__)
 
-# Initialize Resend with API key
+# Initialize Resend with API key (fallback)
 if settings.resend_api_key:
     resend.api_key = settings.resend_api_key
 
@@ -105,9 +108,83 @@ def render_reset_email_template(reset_link: str, expiry_minutes: int = 15) -> st
 """
 
 
+def _send_via_smtp(to_email: str, subject: str, html_content: str) -> bool:
+    """
+    Send email via Gmail SMTP.
+
+    Args:
+        to_email: Recipient email address
+        subject: Email subject
+        html_content: HTML email body
+
+    Returns:
+        True if sent successfully, False otherwise
+    """
+    if not settings.smtp_user or not settings.smtp_pass:
+        logger.debug("SMTP credentials not configured")
+        return False
+
+    try:
+        # Create message
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = f"Lumina Todo <{settings.smtp_user}>"
+        msg["To"] = to_email
+
+        # Attach HTML content
+        html_part = MIMEText(html_content, "html")
+        msg.attach(html_part)
+
+        # Connect and send
+        with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
+            server.starttls()
+            server.login(settings.smtp_user, settings.smtp_pass)
+            server.sendmail(settings.smtp_user, to_email, msg.as_string())
+
+        logger.info(f"Password reset email sent via SMTP to {to_email}")
+        return True
+
+    except Exception as e:
+        logger.error(f"SMTP send failed: {e}")
+        return False
+
+
+def _send_via_resend(to_email: str, subject: str, html_content: str) -> bool:
+    """
+    Send email via Resend API (fallback).
+
+    Args:
+        to_email: Recipient email address
+        subject: Email subject
+        html_content: HTML email body
+
+    Returns:
+        True if sent successfully, False otherwise
+    """
+    if not settings.resend_api_key:
+        logger.debug("Resend API key not configured")
+        return False
+
+    try:
+        resend.Emails.send(
+            {
+                "from": settings.password_reset_from_email,
+                "to": to_email,
+                "subject": subject,
+                "html": html_content,
+            }
+        )
+        logger.info(f"Password reset email sent via Resend to {to_email}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Resend send failed: {e}")
+        return False
+
+
 def send_password_reset_email(to_email: str, reset_link: str) -> bool:
     """
-    Send password reset email using Resend.
+    Send password reset email using SMTP (primary) or Resend (fallback).
 
     Args:
         to_email: Recipient email address
@@ -116,28 +193,19 @@ def send_password_reset_email(to_email: str, reset_link: str) -> bool:
     Returns:
         True if email sent successfully, False otherwise
     """
-    if not settings.resend_api_key:
-        logger.warning("RESEND_API_KEY not configured, skipping email send")
-        return False
+    html_content = render_reset_email_template(
+        reset_link=reset_link,
+        expiry_minutes=settings.password_reset_token_expiry_minutes,
+    )
+    subject = "Reset your Lumina Todo password"
 
-    try:
-        html_content = render_reset_email_template(
-            reset_link=reset_link,
-            expiry_minutes=settings.password_reset_token_expiry_minutes,
-        )
-
-        resend.Emails.send(
-            {
-                "from": settings.password_reset_from_email,
-                "to": to_email,
-                "subject": "Reset your Lumina Todo password",
-                "html": html_content,
-            }
-        )
-        logger.info(f"Password reset email sent to {to_email}")
+    # Try SMTP first (Gmail - works without domain verification)
+    if _send_via_smtp(to_email, subject, html_content):
         return True
 
-    except Exception as e:
-        # Log error but don't expose details to prevent enumeration
-        logger.error(f"Failed to send password reset email: {e}")
-        return False
+    # Fallback to Resend
+    if _send_via_resend(to_email, subject, html_content):
+        return True
+
+    logger.warning("No email service configured or all services failed")
+    return False
