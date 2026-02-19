@@ -1,6 +1,7 @@
 """Authentication routes."""
 
 import logging
+import smtplib
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Response, status
@@ -503,3 +504,37 @@ async def oauth_login(
             is_new_user=is_new_user,
         ),
     )
+
+
+# Debug endpoint for SMTP testing (remove in production)
+@router.get("/debug-smtp")
+async def debug_smtp() -> dict:
+    """
+    Debug endpoint to test SMTP configuration.
+    Returns config status and attempts SMTP connection.
+    """
+    result = {
+        "smtp_host": settings.smtp_host,
+        "smtp_port": settings.smtp_port,
+        "smtp_user": settings.smtp_user or "NOT SET",
+        "smtp_pass": "SET" if settings.smtp_pass else "NOT SET",
+        "resend_api_key": "SET" if settings.resend_api_key else "NOT SET",
+        "smtp_test": None,
+        "smtp_error": None,
+    }
+
+    # Test SMTP connection if credentials are set
+    if settings.smtp_user and settings.smtp_pass:
+        try:
+            server = smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=10)
+            server.starttls()
+            server.login(settings.smtp_user, settings.smtp_pass)
+            server.quit()
+            result["smtp_test"] = "SUCCESS - Login worked!"
+        except Exception as e:
+            result["smtp_test"] = "FAILED"
+            result["smtp_error"] = str(e)
+    else:
+        result["smtp_test"] = "SKIPPED - credentials not set"
+
+    return result
