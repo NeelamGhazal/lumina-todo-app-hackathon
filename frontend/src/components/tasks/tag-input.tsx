@@ -102,7 +102,7 @@ export function TagInput({
       </label>
       <div
         className={cn(
-          "tags-input-box flex flex-wrap items-center gap-2 px-4 py-4 min-h-[52px] rounded-md !bg-transparent !border-none dark:!bg-[#2d1d4a] dark:!border dark:!border-[#5a4a7a]",
+          "tags-input-box flex flex-wrap items-center gap-2 px-4 py-4 min-h-[52px] rounded-md bg-white border border-purple-200 dark:!bg-[#2d1d4a] dark:!border-purple-800",
           disabled && "opacity-50 cursor-not-allowed"
         )}
       >
@@ -134,7 +134,7 @@ export function TagInput({
             onBlur={handleBlur}
             disabled={disabled}
             placeholder={value.length === 0 ? placeholder : ""}
-            className="tags-input-field modal-light-input flex-1 min-w-[120px] h-auto dark:!bg-transparent dark:!border-none dark:!text-[#f3e5f5] dark:placeholder:!text-[#9d8bb5]"
+            className="tags-input-field flex-1 min-w-[120px] h-auto bg-transparent border-none text-gray-900 placeholder-gray-400 dark:!bg-transparent dark:!border-none dark:!text-white dark:placeholder-purple-300"
             aria-label="Add tag"
           />
         )}

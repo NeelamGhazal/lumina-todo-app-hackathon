@@ -46,8 +46,8 @@ export function NotificationItem({ notification, onMarkRead }: NotificationItemP
       className={cn(
         "flex items-start gap-3 p-3 rounded-lg transition-colors",
         notification.isRead
-          ? "bg-transparent opacity-60"
-          : "bg-muted/50 hover:bg-muted"
+          ? "bg-white dark:!bg-[#1a0033] opacity-60"
+          : "bg-purple-50 dark:!bg-[#2d1b4e] hover:bg-purple-100 dark:hover:!bg-[#3d2a5e]"
       )}
     >
       {/* Type icon */}
@@ -88,7 +88,7 @@ export function NotificationItem({ notification, onMarkRead }: NotificationItemP
             e.stopPropagation();
             onMarkRead(notification.id);
           }}
-          className="flex-shrink-0 p-1.5 rounded-md hover:bg-background transition-colors"
+          className="flex-shrink-0 p-1.5 rounded-md hover:bg-purple-100 dark:hover:!bg-[#3d2a5e] transition-colors"
           aria-label="Mark as read"
           title="Mark as read"
         >

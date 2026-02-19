@@ -77,8 +77,8 @@ const AdaptiveDialogContent = React.forwardRef<
           exit="exit"
           className={cn(
             "fixed z-50 w-full",
-            // Modal background via CSS class in globals.css
-            "modal-content-bg",
+            // Clean fix: explicit bg for both themes
+            "bg-white dark:!bg-[#1a0033]",
             "shadow-glass-xl",
             "border border-zinc-200 dark:border-white/10",
             // Mobile: bottom sheet
@@ -93,14 +93,14 @@ const AdaptiveDialogContent = React.forwardRef<
         >
           {/* Drag handle for mobile */}
           <div className="md:hidden flex justify-center pt-3 pb-1">
-            <div className="w-12 h-1.5 rounded-full bg-muted-foreground/30" />
+            <div className="w-12 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
           </div>
           {children}
           {showCloseButton && (
             <DialogPrimitive.Close
               className={cn(
                 "absolute right-4 top-4 p-1.5 rounded-lg",
-                "bg-muted/50 hover:bg-muted",
+                "bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20",
                 "opacity-70 hover:opacity-100",
                 "ring-offset-background transition-all",
                 "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",

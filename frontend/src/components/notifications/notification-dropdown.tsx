@@ -28,14 +28,14 @@ export function NotificationDropdown({
     <div
       className={cn(
         "absolute right-0 top-full mt-2 w-80 sm:w-96",
-        // ISSUE 1 FIX: Solid background for both themes with backdrop blur
-        "bg-white dark:bg-[#1a0033] border border-border rounded-lg",
-        "shadow-xl backdrop-blur-md",
+        // Clean fix: explicit bg for both themes
+        "bg-white dark:!bg-[#1a0033] border border-border rounded-lg",
+        "shadow-xl",
         "z-50 overflow-hidden"
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30 dark:bg-white/5">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-gray-50 dark:!bg-[#2e1a47]">
         <div className="flex items-center gap-2">
           {/* ISSUE 2 FIX: Ensure title has proper contrast */}
           <h3 className="font-semibold text-sm text-foreground">Notifications</h3>
@@ -60,7 +60,7 @@ export function NotificationDropdown({
       </div>
 
       {/* Content */}
-      <div className="max-h-[400px] overflow-y-auto">
+      <div className="max-h-[400px] overflow-y-auto bg-white dark:!bg-[#1a0033]">
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

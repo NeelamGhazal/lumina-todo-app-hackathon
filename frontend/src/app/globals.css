@@ -1314,3 +1314,27 @@ html:not(.dark) .modal-light-input[class][class] {
 html:not(.dark) .modal-light-input[class][class]::placeholder {
   color: #9575cd !important;
 }
+
+/* ==========================================
+   BROWSER AUTOFILL OVERRIDE
+   Chrome/Edge apply different autofill backgrounds
+   ========================================== */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #1a1a1a !important;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill,
+.dark textarea:-webkit-autofill:hover,
+.dark textarea:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #2d1d4a inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
