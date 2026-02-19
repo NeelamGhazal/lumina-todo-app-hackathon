@@ -193,6 +193,12 @@ def send_password_reset_email(to_email: str, reset_link: str) -> bool:
     Returns:
         True if email sent successfully, False otherwise
     """
+    # Debug: Log email configuration status
+    logger.info(f"Email config - SMTP_HOST: {settings.smtp_host}")
+    logger.info(f"Email config - SMTP_USER: {settings.smtp_user or 'NOT SET'}")
+    logger.info(f"Email config - SMTP_PASS: {'SET' if settings.smtp_pass else 'NOT SET'}")
+    logger.info(f"Email config - RESEND_API_KEY: {'SET' if settings.resend_api_key else 'NOT SET'}")
+
     html_content = render_reset_email_template(
         reset_link=reset_link,
         expiry_minutes=settings.password_reset_token_expiry_minutes,
@@ -200,12 +206,21 @@ def send_password_reset_email(to_email: str, reset_link: str) -> bool:
     subject = "Reset your Lumina Todo password"
 
     # Try SMTP first (Gmail - works without domain verification)
-    if _send_via_smtp(to_email, subject, html_content):
-        return True
+    if settings.smtp_user and settings.smtp_pass:
+        logger.info("Attempting to send via Gmail SMTP...")
+        if _send_via_smtp(to_email, subject, html_content):
+            return True
+        logger.warning("SMTP send failed, trying Resend fallback...")
+    else:
+        logger.warning("SMTP credentials not configured, skipping SMTP")
 
     # Fallback to Resend
-    if _send_via_resend(to_email, subject, html_content):
-        return True
+    if settings.resend_api_key:
+        logger.info("Attempting to send via Resend...")
+        if _send_via_resend(to_email, subject, html_content):
+            return True
+    else:
+        logger.warning("Resend API key not configured")
 
-    logger.warning("No email service configured or all services failed")
+    logger.error("All email services failed or not configured")
     return False
