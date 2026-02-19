@@ -102,7 +102,7 @@ export function TagInput({
       </label>
       <div
         className={cn(
-          "tags-input-box flex flex-wrap items-center gap-2 px-4 py-4 min-h-[52px] rounded-md bg-white border border-purple-200 dark:!bg-[#2d1d4a] dark:!border-purple-800",
+          "tags-input-box flex flex-wrap items-center gap-2 px-4 py-4 min-h-[52px] rounded-md bg-transparent border border-purple-200 dark:border-purple-800",
           disabled && "opacity-50 cursor-not-allowed"
         )}
       >
