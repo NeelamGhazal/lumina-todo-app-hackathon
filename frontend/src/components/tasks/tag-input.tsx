@@ -134,7 +134,7 @@ export function TagInput({
             onBlur={handleBlur}
             disabled={disabled}
             placeholder={value.length === 0 ? placeholder : ""}
-            className="tags-input-field flex-1 min-w-[120px] h-auto bg-transparent border-none !text-gray-900 placeholder-gray-400 dark:!bg-transparent dark:!border-none dark:!text-white dark:placeholder-purple-300"
+            className="tags-input-field flex-1 min-w-[120px] h-auto bg-transparent border-none shadow-none outline-none !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-purple-300"
             aria-label="Add tag"
           />
         )}
