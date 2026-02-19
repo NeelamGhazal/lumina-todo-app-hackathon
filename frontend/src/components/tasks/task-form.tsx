@@ -3,6 +3,7 @@
 import { useForm, Controller } from "react-hook-form";
 import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTheme } from "next-themes";
 import { CalendarIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,14 @@ export function TaskForm({
   submitLabel = "Create Task",
   onDirtyChange,
 }: TaskFormProps) {
+  const { resolvedTheme } = useTheme();
+
+  // Inline styles for cross-browser consistency
+  const inputStyle = {
+    backgroundColor: resolvedTheme === 'dark' ? '#2d1d4a' : '#ffffff',
+    color: resolvedTheme === 'dark' ? '#ffffff' : '#111827',
+  };
+
   const {
     register,
     control,
@@ -101,7 +110,8 @@ export function TaskForm({
           disabled={isSubmitting}
           aria-invalid={!!errors.title}
           aria-describedby={errors.title ? "title-error" : undefined}
-          className="bg-white border border-purple-200 text-gray-900 placeholder-gray-400 dark:!bg-[#2d1d4a] dark:!border-purple-800 dark:!text-white dark:placeholder-purple-300"
+          className="border border-purple-200 dark:border-purple-800 placeholder-gray-400 dark:placeholder-purple-300"
+          style={inputStyle}
           {...register("title")}
         />
         {errors.title && (
@@ -126,7 +136,8 @@ export function TaskForm({
           disabled={isSubmitting}
           aria-invalid={!!errors.description}
           aria-describedby={errors.description ? "description-error" : undefined}
-          className="bg-white border border-purple-200 text-gray-900 placeholder-gray-400 dark:!bg-[#2d1d4a] dark:!border-purple-800 dark:!text-white dark:placeholder-purple-300"
+          className="border border-purple-200 dark:border-purple-800 placeholder-gray-400 dark:placeholder-purple-300"
+          style={inputStyle}
           {...register("description")}
         />
         {errors.description && (
@@ -243,7 +254,8 @@ export function TaskForm({
               id="dueTime"
               type="time"
               disabled={isSubmitting}
-              className="pl-10 bg-white border border-purple-200 text-gray-900 dark:!bg-[#2d1d4a] dark:!border-purple-800 dark:!text-white"
+              className="pl-10 border border-purple-200 dark:border-purple-800"
+              style={inputStyle}
               aria-invalid={!!errors.dueTime}
               {...register("dueTime")}
             />

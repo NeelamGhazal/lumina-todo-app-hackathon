@@ -4,6 +4,7 @@ import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
+import { useTheme } from "next-themes";
 
 import { cn } from "@/lib/utils";
 import { modalOverlayVariants, modalContentVariants } from "@/lib/animation-variants";
@@ -53,6 +54,11 @@ const AdaptiveDialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   AdaptiveDialogContentProps
 >(({ className, children, showCloseButton = true, ...props }, ref) => {
+  const { resolvedTheme } = useTheme();
+
+  // Inline style for cross-browser consistency
+  const bgStyle = { backgroundColor: resolvedTheme === 'dark' ? '#1a0033' : '#ffffff' };
+
   return (
     <DialogPrimitive.Portal>
       {/* T072: Glass backdrop overlay */}
@@ -77,8 +83,6 @@ const AdaptiveDialogContent = React.forwardRef<
           exit="exit"
           className={cn(
             "fixed z-50 w-full",
-            // Clean fix: explicit bg for both themes
-            "bg-white dark:!bg-[#1a0033]",
             "shadow-glass-xl",
             "border border-zinc-200 dark:border-white/10",
             // Mobile: bottom sheet
@@ -90,6 +94,7 @@ const AdaptiveDialogContent = React.forwardRef<
             "focus:outline-none",
             className
           )}
+          style={bgStyle}
         >
           {/* Drag handle for mobile */}
           <div className="md:hidden flex justify-center pt-3 pb-1">

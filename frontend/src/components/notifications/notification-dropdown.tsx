@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2, Bell, Trash2 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { NotificationItem } from "./notification-item";
 import type { Notification } from "@/types/api";
@@ -24,23 +25,30 @@ export function NotificationDropdown({
   onMarkRead,
   onClearAll,
 }: NotificationDropdownProps) {
+  const { resolvedTheme } = useTheme();
+
+  // Inline styles for cross-browser consistency
+  const bgStyle = { backgroundColor: resolvedTheme === 'dark' ? '#1a0033' : '#ffffff' };
+  const headerBgStyle = { backgroundColor: resolvedTheme === 'dark' ? '#2e1a47' : '#f9fafb' };
+
   return (
     <div
       className={cn(
         "absolute right-0 top-full mt-2 w-80 sm:w-96",
-        // Clean fix: explicit bg for both themes
-        "bg-white dark:!bg-[#1a0033] border border-border rounded-lg",
+        "border border-border rounded-lg",
         "shadow-xl",
         "z-50 overflow-hidden"
       )}
+      style={bgStyle}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-gray-50 dark:!bg-[#2e1a47]">
+      <div
+        className="flex items-center justify-between px-4 py-3 border-b border-border"
+        style={headerBgStyle}
+      >
         <div className="flex items-center gap-2">
-          {/* ISSUE 2 FIX: Ensure title has proper contrast */}
           <h3 className="font-semibold text-sm text-foreground">Notifications</h3>
           {unreadCount > 0 && (
-            // ISSUE 2 FIX: Badge with proper contrast for both themes
             <span className="text-xs bg-purple-600 dark:bg-purple-500 text-white px-2 py-0.5 rounded-full font-medium">
               {unreadCount} new
             </span>
@@ -49,7 +57,6 @@ export function NotificationDropdown({
         {notifications.length > 0 && (
           <button
             onClick={onClearAll}
-            // ISSUE 2 FIX: Clear all text with proper contrast
             className="text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white flex items-center gap-1 transition-colors"
             aria-label="Clear all notifications"
           >
@@ -60,7 +67,10 @@ export function NotificationDropdown({
       </div>
 
       {/* Content */}
-      <div className="max-h-[400px] overflow-y-auto bg-white dark:!bg-[#1a0033]">
+      <div
+        className="max-h-[400px] overflow-y-auto"
+        style={bgStyle}
+      >
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

@@ -1,6 +1,7 @@
 "use client";
 
 import { Clock, AlertTriangle, CheckCircle, Check } from "lucide-react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import type { Notification, NotificationType } from "@/types/api";
 
@@ -41,14 +42,30 @@ function formatRelativeTime(dateString: string): string {
  * Shows type icon, message, timestamp, and mark-as-read button
  */
 export function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
+  const { resolvedTheme } = useTheme();
+
+  // Inline styles for cross-browser consistency
+  const unreadBgStyle = { backgroundColor: resolvedTheme === 'dark' ? '#2d1b4e' : '#faf5ff' };
+  const readBgStyle = { backgroundColor: resolvedTheme === 'dark' ? '#1a0033' : '#ffffff' };
+  const hoverBgStyle = { backgroundColor: resolvedTheme === 'dark' ? '#3d2a5e' : '#f3e8ff' };
+
   return (
     <div
       className={cn(
         "flex items-start gap-3 p-3 rounded-lg transition-colors",
-        notification.isRead
-          ? "bg-white dark:!bg-[#1a0033] opacity-60"
-          : "bg-purple-50 dark:!bg-[#2d1b4e] hover:bg-purple-100 dark:hover:!bg-[#3d2a5e]"
+        notification.isRead && "opacity-60"
       )}
+      style={notification.isRead ? readBgStyle : unreadBgStyle}
+      onMouseEnter={(e) => {
+        if (!notification.isRead) {
+          e.currentTarget.style.backgroundColor = hoverBgStyle.backgroundColor;
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!notification.isRead) {
+          e.currentTarget.style.backgroundColor = unreadBgStyle.backgroundColor;
+        }
+      }}
     >
       {/* Type icon */}
       <div className="flex-shrink-0 mt-0.5">
@@ -88,7 +105,7 @@ export function NotificationItem({ notification, onMarkRead }: NotificationItemP
             e.stopPropagation();
             onMarkRead(notification.id);
           }}
-          className="flex-shrink-0 p-1.5 rounded-md hover:bg-purple-100 dark:hover:!bg-[#3d2a5e] transition-colors"
+          className="flex-shrink-0 p-1.5 rounded-md hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
           aria-label="Mark as read"
           title="Mark as read"
         >
