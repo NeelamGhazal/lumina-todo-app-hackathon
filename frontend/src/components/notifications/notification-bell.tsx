@@ -77,10 +77,11 @@ export function NotificationBell() {
           <span
             className={cn(
               "absolute flex items-center justify-center",
-              "bg-lumina-primary-500 text-white text-[10px] font-medium",
+              "text-[10px] font-medium",
               "rounded-full min-w-[18px] h-[18px] px-1",
               "top-1 right-1"
             )}
+            style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
           >
             {displayCount}
           </span>
