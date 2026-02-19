@@ -2,6 +2,7 @@
 
 import { useState, useCallback, KeyboardEvent } from "react";
 import { X } from "lucide-react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,7 @@ export function TagInput({
   placeholder = "Add tags (press Enter or comma)",
   maxTags = 10,
 }: TagInputProps) {
+  const { resolvedTheme } = useTheme();
   const [inputValue, setInputValue] = useState("");
 
   const addTag = useCallback(
@@ -134,7 +136,8 @@ export function TagInput({
             onBlur={handleBlur}
             disabled={disabled}
             placeholder={value.length === 0 ? placeholder : ""}
-            className="tags-input-field flex-1 min-w-[120px] h-auto bg-transparent border-none shadow-none outline-none !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-purple-300"
+            className="tags-input-field flex-1 min-w-[120px] h-auto bg-transparent border-none shadow-none outline-none placeholder-gray-400 dark:placeholder-purple-300"
+            style={{ color: resolvedTheme === 'dark' ? '#ffffff' : '#111827' }}
             aria-label="Add tag"
           />
         )}
