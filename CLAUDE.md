@@ -223,6 +223,7 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - SQLite (existing, via SQLModel) - extend User model (008-password-reset)
 - Python 3.13+ (Backend), TypeScript 5.x (Frontend) + FastAPI, SQLModel (Backend); NextAuth.js v5, Next.js 16 (Frontend) (010-oauth-social-login)
 - SQLite via SQLModel (existing) (010-oauth-social-login)
+- SQLite via PersistentVolumeClaim (backend service only) (011-k8s-local-deploy)
 
 ## Recent Changes
 - 002-phase2-todo-frontend: Added TypeScript 5.x (strict mode, no `any` types)

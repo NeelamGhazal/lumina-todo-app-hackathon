@@ -1,0 +1,46 @@
+# Frontend subchart default values
+
+replicaCount: 1
+
+image:
+  repository: lumina-frontend
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: NodePort
+  port: 3000
+  nodePort: 30080
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+config:
+  apiUrl: "http://backend-service.lumina.svc.cluster.local:8000"
+  nodeEnv: "production"
+
+probes:
+  liveness:
+    enabled: true
+    path: /
+    port: 3000
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    enabled: true
+    path: /
+    port: 3000
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3

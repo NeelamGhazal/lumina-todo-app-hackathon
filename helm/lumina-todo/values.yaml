@@ -1,0 +1,162 @@
+# Lumina Todo Helm Chart Values
+# This file contains default values for the lumina-todo umbrella chart
+
+# Global configuration shared across all subcharts
+global:
+  namespace: lumina
+  imageRegistry: ""  # Empty for local Minikube images
+  imagePullPolicy: IfNotPresent
+
+# Frontend subchart configuration
+frontend:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: lumina-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: NodePort
+    port: 3000
+    nodePort: 30080
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  config:
+    apiUrl: "http://backend-service.lumina.svc.cluster.local:8000"
+    nodeEnv: "production"
+
+  probes:
+    liveness:
+      enabled: true
+      path: /
+      port: 3000
+      initialDelaySeconds: 15
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      enabled: true
+      path: /
+      port: 3000
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+# Backend subchart configuration
+backend:
+  enabled: true
+  # MUST be 1 for SQLite integrity
+  replicaCount: 1
+
+  image:
+    repository: lumina-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8000
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  config:
+    databaseUrl: "sqlite+aiosqlite:///app/data/lumina.db"
+    chatbotUrl: "http://chatbot-service.lumina.svc.cluster.local:8001"
+    environment: "production"
+    corsOrigins: "http://frontend-service.lumina.svc.cluster.local:3000,http://localhost:30080"
+
+  # Secrets - Override in secrets-values.yaml (DO NOT COMMIT)
+  secrets:
+    jwtSecretKey: ""
+    smtpUser: ""
+    smtpPass: ""
+
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClass: standard
+    accessMode: ReadWriteOnce
+
+  probes:
+    liveness:
+      enabled: true
+      path: /api/health
+      port: 8000
+      initialDelaySeconds: 15
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      enabled: true
+      path: /api/health
+      port: 8000
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+# Chatbot subchart configuration
+chatbot:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: lumina-chatbot
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8001
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  config:
+    serverPort: 8001
+    serverHost: "0.0.0.0"
+    environment: "production"
+    backendUrl: "http://backend-service.lumina.svc.cluster.local:8000"
+
+  # Secrets - Override in secrets-values.yaml (DO NOT COMMIT)
+  secrets:
+    openrouterApiKey: ""
+
+  probes:
+    liveness:
+      enabled: true
+      path: /health
+      port: 8001
+      initialDelaySeconds: 15
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      enabled: true
+      path: /health
+      port: 8001
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3

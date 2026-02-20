@@ -1,0 +1,409 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Lumina Todo Helm Values",
+  "description": "Schema for lumina-todo Helm chart values.yaml",
+  "type": "object",
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global values shared across all subcharts",
+      "properties": {
+        "namespace": {
+          "type": "string",
+          "default": "lumina",
+          "description": "Kubernetes namespace for all resources"
+        },
+        "imageRegistry": {
+          "type": "string",
+          "default": "",
+          "description": "Global image registry (empty for local images)"
+        },
+        "imagePullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "default": "IfNotPresent",
+          "description": "Image pull policy for all containers"
+        }
+      }
+    },
+    "frontend": {
+      "type": "object",
+      "description": "Frontend service configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "replicaCount": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "default": "lumina-frontend"
+            },
+            "tag": {
+              "type": "string",
+              "default": "latest"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"],
+              "default": "IfNotPresent"
+            }
+          }
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+              "default": "NodePort"
+            },
+            "port": {
+              "type": "integer",
+              "default": 3000
+            },
+            "nodePort": {
+              "type": "integer",
+              "minimum": 30000,
+              "maximum": 32767,
+              "default": 30080
+            }
+          }
+        },
+        "resources": {
+          "$ref": "#/definitions/resources"
+        },
+        "config": {
+          "type": "object",
+          "properties": {
+            "apiUrl": {
+              "type": "string",
+              "default": "http://backend-service.lumina.svc.cluster.local:8000",
+              "description": "Backend API URL (Kubernetes DNS)"
+            },
+            "nodeEnv": {
+              "type": "string",
+              "default": "production"
+            }
+          }
+        },
+        "probes": {
+          "$ref": "#/definitions/probes"
+        }
+      }
+    },
+    "backend": {
+      "type": "object",
+      "description": "Backend service configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "replicaCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1,
+          "default": 1,
+          "description": "MUST be 1 for SQLite integrity"
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "default": "lumina-backend"
+            },
+            "tag": {
+              "type": "string",
+              "default": "latest"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"],
+              "default": "IfNotPresent"
+            }
+          }
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["ClusterIP"],
+              "default": "ClusterIP",
+              "description": "Backend is internal-only"
+            },
+            "port": {
+              "type": "integer",
+              "default": 8000
+            }
+          }
+        },
+        "resources": {
+          "$ref": "#/definitions/resources"
+        },
+        "config": {
+          "type": "object",
+          "properties": {
+            "databaseUrl": {
+              "type": "string",
+              "default": "sqlite:///app/data/lumina.db"
+            },
+            "chatbotUrl": {
+              "type": "string",
+              "default": "http://chatbot-service.lumina.svc.cluster.local:8001"
+            },
+            "environment": {
+              "type": "string",
+              "default": "production"
+            },
+            "corsOrigins": {
+              "type": "string",
+              "default": "http://frontend-service.lumina.svc.cluster.local:3000"
+            }
+          }
+        },
+        "secrets": {
+          "type": "object",
+          "description": "Sensitive configuration (do not commit actual values)",
+          "properties": {
+            "jwtSecretKey": {
+              "type": "string",
+              "description": "JWT signing key"
+            },
+            "smtpUser": {
+              "type": "string",
+              "description": "SMTP username (email address)"
+            },
+            "smtpPass": {
+              "type": "string",
+              "description": "SMTP password (app password)"
+            }
+          },
+          "required": ["jwtSecretKey"]
+        },
+        "persistence": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "size": {
+              "type": "string",
+              "default": "1Gi"
+            },
+            "storageClass": {
+              "type": "string",
+              "default": "standard",
+              "description": "Minikube default StorageClass"
+            },
+            "accessMode": {
+              "type": "string",
+              "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany"],
+              "default": "ReadWriteOnce"
+            }
+          }
+        },
+        "probes": {
+          "$ref": "#/definitions/probes"
+        }
+      }
+    },
+    "chatbot": {
+      "type": "object",
+      "description": "Chatbot service configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "replicaCount": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "default": "lumina-chatbot"
+            },
+            "tag": {
+              "type": "string",
+              "default": "latest"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"],
+              "default": "IfNotPresent"
+            }
+          }
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["ClusterIP"],
+              "default": "ClusterIP",
+              "description": "Chatbot is internal-only"
+            },
+            "port": {
+              "type": "integer",
+              "default": 8001
+            }
+          }
+        },
+        "resources": {
+          "$ref": "#/definitions/resources"
+        },
+        "config": {
+          "type": "object",
+          "properties": {
+            "serverPort": {
+              "type": "integer",
+              "default": 8001
+            },
+            "serverHost": {
+              "type": "string",
+              "default": "0.0.0.0"
+            },
+            "environment": {
+              "type": "string",
+              "default": "production"
+            },
+            "backendUrl": {
+              "type": "string",
+              "default": "http://backend-service.lumina.svc.cluster.local:8000"
+            }
+          }
+        },
+        "secrets": {
+          "type": "object",
+          "description": "Sensitive configuration (do not commit actual values)",
+          "properties": {
+            "openrouterApiKey": {
+              "type": "string",
+              "description": "OpenRouter/OpenAI API key"
+            }
+          }
+        },
+        "probes": {
+          "$ref": "#/definitions/probes"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "resources": {
+      "type": "object",
+      "description": "Container resource requests and limits",
+      "properties": {
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "default": "250m"
+            },
+            "memory": {
+              "type": "string",
+              "default": "256Mi"
+            }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "default": "500m"
+            },
+            "memory": {
+              "type": "string",
+              "default": "512Mi"
+            }
+          }
+        }
+      }
+    },
+    "probes": {
+      "type": "object",
+      "description": "Liveness and readiness probe configuration",
+      "properties": {
+        "liveness": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "path": {
+              "type": "string"
+            },
+            "port": {
+              "type": "integer"
+            },
+            "initialDelaySeconds": {
+              "type": "integer",
+              "default": 15
+            },
+            "periodSeconds": {
+              "type": "integer",
+              "default": 30
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "default": 5
+            },
+            "failureThreshold": {
+              "type": "integer",
+              "default": 3
+            }
+          }
+        },
+        "readiness": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "path": {
+              "type": "string"
+            },
+            "port": {
+              "type": "integer"
+            },
+            "initialDelaySeconds": {
+              "type": "integer",
+              "default": 5
+            },
+            "periodSeconds": {
+              "type": "integer",
+              "default": 10
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "default": 3
+            },
+            "failureThreshold": {
+              "type": "integer",
+              "default": 3
+            }
+          }
+        }
+      }
+    }
+  }
+}

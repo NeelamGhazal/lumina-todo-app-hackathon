@@ -28,6 +28,10 @@ htmlcov/
 .env.local
 *.local
 
+# Kubernetes Secrets (DO NOT COMMIT)
+secrets-values.yaml
+*-secrets.yaml
+
 # OS
 .DS_Store
 Thumbs.db
@@ -36,3 +40,4 @@ Thumbs.db
 dist/
 build/
 *.egg-info/
+.vercel

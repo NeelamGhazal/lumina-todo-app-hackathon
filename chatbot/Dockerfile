@@ -12,6 +12,7 @@ WORKDIR /app
 
 # Copy project files
 COPY pyproject.toml .
+COPY uv.lock .
 COPY README.md .
 COPY mcp_server/ mcp_server/
 

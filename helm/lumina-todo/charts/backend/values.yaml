@@ -1,0 +1,60 @@
+# Backend subchart default values
+
+# MUST be 1 for SQLite integrity
+replicaCount: 1
+
+image:
+  repository: lumina-backend
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 8000
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+config:
+  databaseUrl: "sqlite+aiosqlite:///app/data/lumina.db"
+  chatbotUrl: "http://chatbot-service.lumina.svc.cluster.local:8001"
+  environment: "production"
+  corsOrigins: "http://frontend-service.lumina.svc.cluster.local:3000,http://localhost:30080"
+
+# Secrets - Override in secrets-values.yaml (DO NOT COMMIT actual values)
+secrets:
+  jwtSecretKey: ""
+  smtpUser: ""
+  smtpPass: ""
+
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClass: standard
+  accessMode: ReadWriteOnce
+
+probes:
+  liveness:
+    enabled: true
+    path: /api/health
+    port: 8000
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    enabled: true
+    path: /api/health
+    port: 8000
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3

@@ -1,0 +1,51 @@
+# Chatbot subchart default values
+
+replicaCount: 1
+
+image:
+  repository: lumina-chatbot
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 8001
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+config:
+  serverPort: 8001
+  serverHost: "0.0.0.0"
+  environment: "production"
+  backendUrl: "http://backend-service.lumina.svc.cluster.local:8000"
+
+# Secrets - Override in secrets-values.yaml (DO NOT COMMIT actual values)
+secrets:
+  openrouterApiKey: ""
+
+probes:
+  liveness:
+    enabled: true
+    path: /health
+    port: 8001
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    enabled: true
+    path: /health
+    port: 8001
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3

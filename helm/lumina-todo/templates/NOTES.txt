@@ -1,0 +1,25 @@
+Lumina Todo has been deployed!
+
+To access the application:
+{{- if contains "NodePort" .Values.frontend.service.type }}
+1. Get the frontend URL by running:
+   export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services frontend-service)
+   export NODE_IP=$(minikube ip)
+   echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.frontend.service.type }}
+1. Get the frontend URL by running:
+   kubectl get --namespace {{ .Release.Namespace }} svc frontend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+{{- end }}
+
+2. Verify all pods are running:
+   kubectl get pods -n {{ .Release.Namespace }}
+
+3. Check logs:
+   kubectl logs -f deployment/frontend -n {{ .Release.Namespace }}
+   kubectl logs -f deployment/backend -n {{ .Release.Namespace }}
+   kubectl logs -f deployment/chatbot -n {{ .Release.Namespace }}
+
+Services:
+- Frontend: http://$(minikube ip):30080
+- Backend (internal): http://backend-service.{{ .Release.Namespace }}.svc.cluster.local:8000
+- Chatbot (internal): http://chatbot-service.{{ .Release.Namespace }}.svc.cluster.local:8001

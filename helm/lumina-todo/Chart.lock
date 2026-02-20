@@ -1,0 +1,12 @@
+dependencies:
+- name: frontend
+  repository: file://charts/frontend
+  version: 0.1.0
+- name: backend
+  repository: file://charts/backend
+  version: 0.1.0
+- name: chatbot
+  repository: file://charts/chatbot
+  version: 0.1.0
+digest: sha256:341d9582c3388aa44fbf81e9a9dd48b68e4b20e4c2d68771fdf302ab16fb5bbc
+generated: "2026-02-20T21:45:54.524476858+05:00"

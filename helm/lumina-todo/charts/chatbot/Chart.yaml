@@ -1,0 +1,16 @@
+apiVersion: v2
+name: chatbot
+description: Lumina Todo Chatbot - MCP Server for AI-assisted task management
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+keywords:
+  - chatbot
+  - mcp
+  - ai
+  - python
+
+maintainers:
+  - name: Lumina Team
+    email: team@lumina.dev
