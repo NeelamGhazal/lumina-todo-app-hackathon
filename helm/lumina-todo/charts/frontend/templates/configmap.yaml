@@ -7,3 +7,6 @@ metadata:
 data:
   NEXT_PUBLIC_API_URL: {{ .Values.config.apiUrl | quote }}
   NODE_ENV: {{ .Values.config.nodeEnv | quote }}
+  NEXTAUTH_URL: {{ .Values.config.nextAuthUrl | quote }}
+  NEXTAUTH_SECRET: {{ .Values.config.nextAuthSecret | quote }}
+  AUTH_TRUST_HOST: {{ .Values.config.authTrustHost | quote }}

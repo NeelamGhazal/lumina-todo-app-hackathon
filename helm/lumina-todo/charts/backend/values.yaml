@@ -12,8 +12,9 @@ nameOverride: ""
 fullnameOverride: ""
 
 service:
-  type: ClusterIP
+  type: NodePort
   port: 8000
+  nodePort: 30081
 
 resources:
   requests:
@@ -24,10 +25,10 @@ resources:
     memory: 512Mi
 
 config:
-  databaseUrl: "sqlite+aiosqlite:///app/data/lumina.db"
+  databaseUrl: "sqlite+aiosqlite:////app/data/lumina.db"
   chatbotUrl: "http://chatbot-service.lumina.svc.cluster.local:8001"
   environment: "production"
-  corsOrigins: "http://frontend-service.lumina.svc.cluster.local:3000,http://localhost:30080"
+  corsOrigins: "http://frontend-service.lumina.svc.cluster.local:3000,http://localhost:30080,http://192.168.49.2:30080,http://localhost:3000,http://127.0.0.1:38081,http://127.0.0.1:3000"
 
 # Secrets - Override in secrets-values.yaml (DO NOT COMMIT actual values)
 secrets:

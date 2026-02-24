@@ -15,6 +15,17 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Build arguments for Next.js environment variables
+# These are baked into the JavaScript bundle at build time
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000/api
+ARG NEXTAUTH_SECRET=local-dev-secret
+ARG NEXTAUTH_URL=http://localhost:3000
+ARG AUTH_TRUST_HOST=true
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+ENV NEXTAUTH_URL=${NEXTAUTH_URL}
+ENV AUTH_TRUST_HOST=${AUTH_TRUST_HOST}
+
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

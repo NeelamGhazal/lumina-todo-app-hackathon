@@ -31,8 +31,14 @@ frontend:
       memory: 512Mi
 
   config:
-    apiUrl: "http://backend-service.lumina.svc.cluster.local:8000"
+    # For browser access, use localhost with port-forward (include /api suffix)
+    apiUrl: "http://localhost:8080/api"
     nodeEnv: "production"
+    # NextAuth configuration for local K8s
+    nextAuthUrl: "http://localhost:3000"
+    nextAuthSecret: "local-dev-secret-key-12345"
+    # Trust host to avoid UntrustedHost errors with tunnels
+    authTrustHost: "true"
 
   probes:
     liveness:
@@ -64,8 +70,9 @@ backend:
     pullPolicy: IfNotPresent
 
   service:
-    type: ClusterIP
+    type: NodePort
     port: 8000
+    nodePort: 30081
 
   resources:
     requests:
@@ -76,10 +83,10 @@ backend:
       memory: 512Mi
 
   config:
-    databaseUrl: "sqlite+aiosqlite:///app/data/lumina.db"
+    databaseUrl: "sqlite+aiosqlite:////app/data/lumina.db"
     chatbotUrl: "http://chatbot-service.lumina.svc.cluster.local:8001"
     environment: "production"
-    corsOrigins: "http://frontend-service.lumina.svc.cluster.local:3000,http://localhost:30080"
+    corsOrigins: "http://frontend-service.lumina.svc.cluster.local:3000,http://localhost:30080,http://192.168.49.2:30080,http://localhost:3000,http://127.0.0.1:38081,http://127.0.0.1:3000"
 
   # Secrets - Override in secrets-values.yaml (DO NOT COMMIT)
   secrets:
@@ -138,6 +145,7 @@ chatbot:
     serverHost: "0.0.0.0"
     environment: "production"
     backendUrl: "http://backend-service.lumina.svc.cluster.local:8000"
+    databaseUrl: "sqlite+aiosqlite:///:memory:"
 
   # Secrets - Override in secrets-values.yaml (DO NOT COMMIT)
   secrets:

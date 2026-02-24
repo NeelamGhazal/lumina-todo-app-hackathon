@@ -121,7 +121,7 @@ class ApiClient {
         ...fetchOptions,
         headers,
         body: body ? JSON.stringify(body) : undefined,
-        credentials: "include", // Also include cookies as fallback
+        credentials: "omit", // Use Authorization header for auth, not cookies (required for wildcard CORS)
       });
     } catch (error) {
       // Handle network errors (connection refused, offline, etc.)

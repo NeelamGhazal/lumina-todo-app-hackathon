@@ -25,12 +25,15 @@ const TOKEN_COOKIE_NAME = "auth_token";
  * NextAuth.js configuration
  */
 export const authConfig: NextAuthConfig = {
-  providers: [
-    GitHub({
-      clientId: process.env.AUTH_GITHUB_ID!,
-      clientSecret: process.env.AUTH_GITHUB_SECRET!,
-    }),
-  ],
+  // Only include GitHub provider if credentials are configured
+  providers: (process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET)
+    ? [
+        GitHub({
+          clientId: process.env.AUTH_GITHUB_ID,
+          clientSecret: process.env.AUTH_GITHUB_SECRET,
+        }),
+      ]
+    : [],
 
   // Use JWT strategy (no database sessions)
   session: {

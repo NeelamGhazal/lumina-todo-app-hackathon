@@ -15,6 +15,7 @@ COPY pyproject.toml .
 COPY uv.lock .
 COPY README.md .
 COPY mcp_server/ mcp_server/
+COPY agent/ agent/
 
 # Create virtual environment and install dependencies
 RUN uv sync --frozen --no-dev
@@ -33,6 +34,7 @@ COPY --from=builder /app/.venv /app/.venv
 
 # Copy application code
 COPY --from=builder /app/mcp_server /app/mcp_server
+COPY --from=builder /app/agent /app/agent
 
 # Set environment variables
 ENV PATH="/app/.venv/bin:$PATH"

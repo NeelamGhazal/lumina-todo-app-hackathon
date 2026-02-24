@@ -8,4 +8,6 @@ data:
   MCP_SERVER_PORT: {{ .Values.config.serverPort | quote }}
   MCP_SERVER_HOST: {{ .Values.config.serverHost | quote }}
   BACKEND_URL: {{ .Values.config.backendUrl | quote }}
+  API_BASE_URL: {{ .Values.config.backendUrl | quote }}
   ENVIRONMENT: {{ .Values.config.environment | quote }}
+  DATABASE_URL: {{ .Values.config.databaseUrl | quote }}

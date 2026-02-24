@@ -24,8 +24,14 @@ resources:
     memory: 512Mi
 
 config:
-  apiUrl: "http://backend-service.lumina.svc.cluster.local:8000"
+  # For browser access, use localhost with port-forward (include /api suffix)
+  apiUrl: "http://localhost:8080/api"
   nodeEnv: "production"
+  # NextAuth configuration for local K8s
+  nextAuthUrl: "http://localhost:3000"
+  nextAuthSecret: "local-dev-secret-key-12345"
+  # Trust host to avoid UntrustedHost errors with tunnels
+  authTrustHost: "true"
 
 probes:
   liveness:

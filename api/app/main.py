@@ -61,11 +61,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS middleware - allow multiple origins for Vercel integration
+# CORS middleware - allow all origins for local K8s development
+# In production, use specific origins via settings.cors_origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_credentials=True,
+    allow_origins=["*"],  # Allow all origins for local dev
+    allow_credentials=False,  # Must be False when allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )

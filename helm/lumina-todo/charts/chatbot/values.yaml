@@ -27,10 +27,11 @@ config:
   serverHost: "0.0.0.0"
   environment: "production"
   backendUrl: "http://backend-service.lumina.svc.cluster.local:8000"
+  databaseUrl: "sqlite+aiosqlite:///:memory:"
 
 # Secrets - Override in secrets-values.yaml (DO NOT COMMIT actual values)
 secrets:
-  openrouterApiKey: ""
+  openrouterApiKey: "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"
 
 probes:
   liveness:
