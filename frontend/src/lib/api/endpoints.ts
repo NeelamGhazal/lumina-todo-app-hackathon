@@ -3,7 +3,16 @@
  * Per Phase II spec: JWT token stored and sent with every request
  */
 
-import { apiClient, setAuthToken, clearAuthToken, getAuthToken } from "./client";
+import {
+  apiClient,
+  setAuthToken,
+  clearAuthToken,
+  getAuthToken,
+  getUserIdFromToken,
+  ApiClient,
+  ApiClientError,
+} from "./client";
+import { ERROR_CODES } from "@/types/api";
 import type {
   ClearNotificationsResponse,
   CreateTaskRequest,
@@ -201,12 +210,38 @@ export interface ChatResponse {
   }>;
 }
 
+/**
+ * Chatbot Space base URL. When set, chat messages go straight to the agent
+ * Space instead of being proxied through the Phase II API — the Space-to-Space
+ * proxy hop is what hits Hugging Face's rate limit. The agent's own tool calls
+ * back to the Phase II API are plain external traffic and are unaffected.
+ */
+const CHATBOT_URL = process.env.NEXT_PUBLIC_CHATBOT_URL?.replace(/\/$/, "");
+const chatbotClient = CHATBOT_URL ? new ApiClient(CHATBOT_URL) : null;
+
 export const chatApi = {
   /**
-   * Send a message to the AI assistant
-   * Proxies through Phase II API to Part 2 agent
+   * Send a message to the AI assistant.
+   * Direct to the chatbot Space when NEXT_PUBLIC_CHATBOT_URL is configured,
+   * otherwise proxied through the Phase II API (/chat).
    */
   sendMessage: async (data: ChatMessage): Promise<ChatResponse> => {
+    if (chatbotClient) {
+      const userId = getUserIdFromToken();
+      if (!userId) {
+        throw new ApiClientError(
+          "You need to sign in to use the assistant.",
+          ERROR_CODES.UNAUTHORIZED,
+          401,
+        );
+      }
+      // Chatbot Space contract: POST /api/{user_id}/chat, JWT in Authorization
+      // header so its tools can call the Phase II API on the user's behalf.
+      return chatbotClient.post<ChatResponse>(`/api/${userId}/chat`, {
+        message: data.message,
+        conversation_id: data.conversation_id ?? undefined,
+      });
+    }
     return apiClient.post<ChatResponse>("/chat", data);
   },
 
