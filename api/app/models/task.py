@@ -4,7 +4,11 @@ from datetime import UTC, datetime, date, time
 from enum import Enum
 from uuid import UUID, uuid4
 
+from sqlalchemy import DateTime
 from sqlmodel import Field, SQLModel, Column, JSON
+
+# Timezone-aware timestamp column (Postgres timestamptz).
+_TZ = DateTime(timezone=True)
 
 
 class TaskPriority(str, Enum):
@@ -40,6 +44,6 @@ class Task(SQLModel, table=True):
     due_date: date | None = Field(default=None)
     due_time: time | None = Field(default=None)
     completed: bool = Field(default=False)
-    completed_at: datetime | None = Field(default=None)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    completed_at: datetime | None = Field(default=None, sa_type=_TZ)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), sa_type=_TZ)
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC), sa_type=_TZ)
