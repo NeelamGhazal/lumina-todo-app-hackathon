@@ -13,7 +13,7 @@ References:
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import UUID
 
@@ -471,9 +471,10 @@ async def run_agent(
     })
 
     # Give the model an authoritative "today" so relative dates ("tomorrow",
-    # "Friday") don't fall back to its training cutoff. UTC; good enough for
-    # day-granularity task due dates.
-    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d (%A)")
+    # "Friday") don't fall back to its training cutoff. Shift UTC by the
+    # configured offset so the calendar day is right for the user near midnight.
+    now_local = datetime.now(timezone.utc) + timedelta(hours=settings.agent_tz_offset_hours)
+    today_str = now_local.strftime("%Y-%m-%d (%A)")
 
     try:
         # Build input with conversation context

@@ -51,6 +51,12 @@ class AgentSettings(BaseSettings):
     # OpenAI key.
     agent_enable_tracing: bool = False
 
+    # Hours to add to UTC when resolving "today"/"tomorrow" for the user.
+    # Set AGENT_TZ_OFFSET_HOURS to the user's timezone offset (e.g. 5 for
+    # Pakistan / PKT) so relative dates land on the right calendar day near
+    # midnight. 0 = UTC.
+    agent_tz_offset_hours: float = 0.0
+
     # Session Configuration (per FR-043)
     session_timeout_minutes: int = 30
 
