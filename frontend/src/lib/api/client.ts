@@ -32,6 +32,26 @@ export function getAuthToken(): string | null {
 }
 
 /**
+ * Decode the user id (JWT `sub` claim) from the stored token.
+ * Client-side only; no signature verification (the backend verifies).
+ * Used to address the chatbot Space directly at /api/{user_id}/chat.
+ */
+export function getUserIdFromToken(): string | null {
+  const token = getAuthToken();
+  if (!token) return null;
+  try {
+    const part = token.split(".")[1];
+    if (!part) return null;
+    const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "=");
+    const payload = JSON.parse(atob(padded)) as { sub?: string };
+    return payload.sub ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Store auth token as a cookie.
  * Uses a non-httpOnly cookie so both client JS and Next.js middleware can read it.
  * The actual security comes from JWT signature verification on the backend.
@@ -64,7 +84,7 @@ interface RequestOptions extends Omit<RequestInit, "body"> {
 // API Client Class
 // =============================================================================
 
-class ApiClient {
+export class ApiClient {
   private baseUrl: string;
 
   constructor(baseUrl: string) {
