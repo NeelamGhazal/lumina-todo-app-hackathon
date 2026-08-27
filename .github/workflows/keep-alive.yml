@@ -1,0 +1,61 @@
+name: keep-alive
+
+# Pings the Hugging Face Space backends every ~5 minutes so their free-tier
+# containers stay warm. This avoids the cold-start window that makes sign-in
+# (and the AI agent) fail — especially GitHub OAuth, whose Vercel callback
+# function has a hard 10s limit that a cold Space boot blows past.
+#
+# NOTE: GitHub only runs `schedule` triggers from the repository's DEFAULT
+# branch, and it auto-disables scheduled workflows after 60 days with no
+# commits to the repo. If pings stop, re-enable this workflow from the
+# Actions tab (or push any commit).
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # every 5 min (GitHub may delay under load)
+  workflow_dispatch: {}       # allow manual runs from the Actions tab
+
+concurrency:
+  group: keep-alive
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping backend API (lumina-todo-api)
+        run: |
+          set -uo pipefail
+          url="https://neelumghazal-lumina-todo-api.hf.space/api/health"
+          for attempt in 1 2 3 4 5; do
+            code=$(curl -sS -o /tmp/api_body -w '%{http_code}' -m 30 "$url" || echo 000)
+            echo "attempt $attempt -> HTTP $code"
+            if [ "$code" = "200" ]; then
+              echo "backend healthy: $(cat /tmp/api_body)"
+              exit 0
+            fi
+            [ "$attempt" -lt 5 ] && sleep 30
+          done
+          echo "::error title=Backend down::/api/health did not return 200 after 5 attempts (last: $code)"
+          cat /tmp/api_body || true
+          exit 1
+
+      - name: Ping AI agent (lumina-chatbot)
+        if: always()   # still warm the agent even if the step above failed
+        run: |
+          set -uo pipefail
+          url="https://neelumghazal-lumina-chatbot.hf.space/health"
+          for attempt in 1 2 3; do
+            code=$(curl -sS -o /tmp/cb_body -w '%{http_code}' -m 30 "$url" || echo 000)
+            echo "attempt $attempt -> HTTP $code"
+            if [ "$code" = "200" ]; then
+              echo "chatbot healthy: $(cat /tmp/cb_body)"
+              exit 0
+            fi
+            [ "$attempt" -lt 3 ] && sleep 20
+          done
+          echo "::warning title=AI agent down::chatbot /health did not return 200 after 3 attempts (last: $code)"
