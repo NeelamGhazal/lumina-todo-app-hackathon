@@ -13,12 +13,28 @@ References:
 """
 
 import json
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
 import structlog
 from openai import AsyncOpenAI
 from agents import Agent, Runner, set_default_openai_client, function_tool
+
+# Optional SDK helpers — names/locations have shifted across openai-agents
+# versions, so import them defensively.
+try:
+    from agents import set_tracing_disabled  # type: ignore
+except ImportError:  # pragma: no cover
+    set_tracing_disabled = None  # type: ignore
+
+try:
+    from agents.exceptions import MaxTurnsExceeded  # type: ignore
+except ImportError:  # pragma: no cover
+    try:
+        from agents import MaxTurnsExceeded  # type: ignore
+    except ImportError:  # pragma: no cover
+        MaxTurnsExceeded = None  # type: ignore
 
 from agent.config import get_agent_settings
 from agent.api_client import (
@@ -61,6 +77,13 @@ def _configure_openrouter_client() -> None:
 
     # Set as default client for the Agents SDK
     set_default_openai_client(openrouter_client)
+
+    # Kill SDK tracing unless explicitly enabled with a real OpenAI key.
+    # By default the SDK ships traces to api.openai.com using this client's
+    # key (the OpenRouter key), which 401s on every request.
+    if not settings.agent_enable_tracing and set_tracing_disabled is not None:
+        set_tracing_disabled(True)
+        logger.info("agent_tracing_disabled")
 
     logger.info(
         "openrouter_client_configured",
@@ -439,12 +462,18 @@ async def run_agent(
         raise RuntimeError("Agent not initialized. Call initialize_agents_sdk() first.")
 
     agent = get_todo_agent()
+    settings = get_agent_settings()
 
     # Set user context for tool execution (includes auth token for API calls)
     token = _set_current_context({
         "user_id": str(user_id),
         "auth_token": auth_token,
     })
+
+    # Give the model an authoritative "today" so relative dates ("tomorrow",
+    # "Friday") don't fall back to its training cutoff. UTC; good enough for
+    # day-granularity task due dates.
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d (%A)")
 
     try:
         # Build input with conversation context
@@ -454,9 +483,12 @@ async def run_agent(
                 f"{msg['role'].title()}: {msg['content']}"
                 for msg in conversation_history[-10:]  # Last 10 messages
             ])
-            full_input = f"Previous conversation:\n{context_str}\n\nUser: {message}"
+            full_input = (
+                f"Today is {today_str}.\n\n"
+                f"Previous conversation:\n{context_str}\n\nUser: {message}"
+            )
         else:
-            full_input = message
+            full_input = f"Today is {today_str}.\n\nUser: {message}"
 
         logger.debug(
             "running_agent",
@@ -465,8 +497,9 @@ async def run_agent(
             has_history=bool(conversation_history),
         )
 
-        # Run the agent
-        result = await Runner.run(agent, full_input)
+        # Run the agent with a hard turn cap so a model that keeps retrying a
+        # failing tool can't hammer the Part 1 API (default SDK cap is 10).
+        result = await Runner.run(agent, full_input, max_turns=settings.agent_max_turns)
 
         # Extract tool calls from the result
         tool_calls = []
@@ -493,6 +526,20 @@ async def run_agent(
         return response_text, tool_calls
 
     except Exception as e:
+        # Turn cap hit — usually the model looping on a tool that's erroring
+        # (e.g. the Part 1 API is unreachable). Return a clean message instead
+        # of a 500 so the user gets useful feedback.
+        if MaxTurnsExceeded is not None and isinstance(e, MaxTurnsExceeded):
+            logger.warning(
+                "agent_max_turns_exceeded",
+                user_id=str(user_id),
+                max_turns=settings.agent_max_turns,
+            )
+            return (
+                "I couldn't finish that request — I'm having trouble reaching "
+                "your task list right now. Please try again in a moment.",
+                [],
+            )
         logger.error(
             "agent_run_failed",
             user_id=str(user_id),
