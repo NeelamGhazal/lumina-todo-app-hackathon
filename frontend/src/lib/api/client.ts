@@ -121,7 +121,7 @@ class ApiClient {
         ...fetchOptions,
         headers,
         body: body ? JSON.stringify(body) : undefined,
-        credentials: "include", // Also include cookies as fallback
+        credentials: "omit", // Auth is via Authorization: Bearer header, not cookies. "include" makes the browser require Access-Control-Allow-Credentials on the preflight, which the Hugging Face Spaces edge proxy does not send — breaking every cross-origin API call.
       });
     } catch (error) {
       // Handle network errors (connection refused, offline, etc.)
