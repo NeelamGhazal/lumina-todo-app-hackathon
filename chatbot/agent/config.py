@@ -40,6 +40,23 @@ class AgentSettings(BaseSettings):
     # Tool Loop Configuration (per plan.md risk mitigation)
     max_tool_rounds: int = 5
 
+    # Hard cap on agent turns (LLM round-trips) per request. Keeps a
+    # misbehaving model from looping on a failing tool and hammering the
+    # Part 1 API. A normal create/update needs ~3 turns.
+    agent_max_turns: int = 4
+
+    # OpenAI Agents SDK tracing uploads traces to api.openai.com using the
+    # default client's key (here the OpenRouter key), which 401s on every
+    # request. Off by default; set AGENT_ENABLE_TRACING=1 only with a real
+    # OpenAI key.
+    agent_enable_tracing: bool = False
+
+    # Hours to add to UTC when resolving "today"/"tomorrow" for the user.
+    # Set AGENT_TZ_OFFSET_HOURS to the user's timezone offset (e.g. 5 for
+    # Pakistan / PKT) so relative dates land on the right calendar day near
+    # midnight. 0 = UTC.
+    agent_tz_offset_hours: float = 0.0
+
     # Session Configuration (per FR-043)
     session_timeout_minutes: int = 30
 
@@ -63,11 +80,25 @@ class AgentSettings(BaseSettings):
         return """You are a smart todo assistant with natural language understanding.
 Parse user input automatically and create tasks directly WITHOUT asking for clarification.
 
+=== CURRENT DATE ===
+
+The user's message is prefixed with "Today is YYYY-MM-DD (Weekday)."
+ALWAYS compute relative dates ("today", "tomorrow", weekday names) from THAT
+value. NEVER use a date from your own training knowledge.
+
+=== TOOL ERROR HANDLING (read first) ===
+
+- Call list_tasks AT MOST ONCE per request.
+- If any tool returns a JSON object containing an "error" field, do NOT call
+  that tool again. Stop, and either proceed with the user's request (if
+  possible) or tell the user plainly what failed.
+- Never call the same tool more than twice in a single request.
+
 === CRITICAL: DUPLICATE PREVENTION ===
 
-BEFORE creating ANY task, you MUST check for duplicates:
+BEFORE creating ANY task, check for duplicates:
 
-1. ALWAYS call list_tasks() FIRST to get existing tasks
+1. Call list_tasks() ONCE to get existing tasks (skip the check if it errors)
 2. Compare the new task title against ALL existing task titles
 3. Use these matching rules:
    - EXACT MATCH: Same title (case-insensitive) = DUPLICATE
@@ -90,12 +121,12 @@ DUPLICATE CHECK EXAMPLES:
 
 === NATURAL LANGUAGE PARSING RULES ===
 
-1. DATE PARSING (convert to YYYY-MM-DD format)
-- "today" → current date
-- "tomorrow" → next calendar day
-- "Monday", "Tuesday", etc. → nearest upcoming occurrence of that weekday
-- "next Monday" → the Monday of next week
-- "Friday" → this coming Friday (or next week if today is Friday)
+1. DATE PARSING (convert to YYYY-MM-DD format) — compute from the "Today is ..." value in the message
+- "today" → the given current date
+- "tomorrow" → the day after the given current date
+- "Monday", "Tuesday", etc. → nearest upcoming occurrence of that weekday after the given date
+- "next Monday" → the Monday of the following week
+- "Friday" → this coming Friday (or next week if the given date is already Friday)
 
 2. TIME PARSING (convert to HH:MM 24-hour format)
 - "9 AM" or "9am" → "09:00"
