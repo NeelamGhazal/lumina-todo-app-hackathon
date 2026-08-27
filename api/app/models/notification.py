@@ -4,7 +4,11 @@ from datetime import UTC, datetime
 from enum import Enum
 from uuid import UUID, uuid4
 
+from sqlalchemy import DateTime
 from sqlmodel import Field, SQLModel
+
+# Timezone-aware timestamp column (Postgres timestamptz).
+_TZ = DateTime(timezone=True)
 
 
 class NotificationType(str, Enum):
@@ -26,4 +30,4 @@ class Notification(SQLModel, table=True):
     type: NotificationType
     message: str = Field(max_length=500)
     is_read: bool = Field(default=False)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), index=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), sa_type=_TZ, index=True)

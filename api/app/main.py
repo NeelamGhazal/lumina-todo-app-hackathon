@@ -91,18 +91,25 @@ async def health_check() -> dict:
     return {"status": "ok", "version": "0.1.0"}
 
 
+def _redact_db_url(url: str) -> str:
+    """Return the DB URL with any user:password stripped out."""
+    try:
+        from sqlalchemy.engine import make_url
+
+        u = make_url(url)
+        return f"{u.drivername}://{u.host or ''}{('/' + u.database) if u.database else ''}"
+    except Exception:
+        return "<hidden>"
+
+
 @app.get("/api/debug/db")
 async def debug_db() -> dict:
-    """Debug endpoint to test database connectivity."""
+    """Debug endpoint to test database connectivity (no credentials in output)."""
     from app.core.database import engine
-    import os
 
     result = {
-        "database_url": settings.database_url,
+        "database": _redact_db_url(settings.database_url),
         "environment": settings.environment,
-        "cwd": os.getcwd(),
-        "data_dir_exists": os.path.exists("./data"),
-        "data_dir_writable": os.access("./data", os.W_OK) if os.path.exists("./data") else False,
     }
 
     try:
@@ -111,9 +118,10 @@ async def debug_db() -> dict:
             await conn.execute(text("SELECT 1"))
         result["db_connection"] = "success"
     except Exception as e:
+        logger.error(f"debug_db connection check failed: {e}")
+        logger.error(traceback.format_exc())
         result["db_connection"] = "failed"
-        result["db_error"] = str(e)
-        result["db_traceback"] = traceback.format_exc()
+        result["db_error"] = type(e).__name__
 
     return result
 
@@ -123,11 +131,9 @@ async def global_exception_handler(request: Request, exc: Exception):
     """Global exception handler to return actual error details."""
     logger.error(f"Unhandled exception: {exc}")
     logger.error(traceback.format_exc())
-    return JSONResponse(
-        status_code=500,
-        content={
-            "detail": str(exc),
-            "type": type(exc).__name__,
-            "traceback": traceback.format_exc() if settings.is_development else None,
-        },
-    )
+    content = {"detail": "Internal server error", "type": type(exc).__name__}
+    if settings.is_development:
+        # Full detail only when ENVIRONMENT=development (never in production).
+        content["detail"] = str(exc)
+        content["traceback"] = traceback.format_exc()
+    return JSONResponse(status_code=500, content=content)
